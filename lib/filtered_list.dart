@@ -1,3 +1,5 @@
+import 'package:crimewalksapp/filtered_list.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -21,12 +23,11 @@ class FilteredList extends StatefulWidget
 
 class _FilteredListState extends State<FilteredList>
 {
-  CrimeType crimeType = CrimeType.ALL;
-  Length length = Length.ALL;
-  Location location = Location.ALL;
-  Difficulty difficulty = Difficulty.ALL;
-  TransportType transportType = TransportType.ALL;
-
+  final GlobalKey<_FilterableFlagState<CrimeType>> crimeTypeKey = GlobalKey();
+  final GlobalKey<_FilterableFlagState<Length>> lengthKey = GlobalKey();
+  final GlobalKey<_FilterableFlagState<Location>> locationKey = GlobalKey();
+  final GlobalKey<_FilterableFlagState<Difficulty>> difficultyKey = GlobalKey();
+  final GlobalKey<_FilterableFlagState<TransportType>> transportTypeKey = GlobalKey();
 
   @override
   Widget build(BuildContext context)
@@ -34,7 +35,7 @@ class _FilteredListState extends State<FilteredList>
     return Consumer<CrimeWalkModel>(builder: createMenu);
   }
 
-  // always visible? toggle actual menu when clicked. i.e. button + margin (4px?) + menu
+  // always visible? toggle actual menu when clicked. i.e. button + margin (8px?) + menu
   Widget createButton()
   {
     return Padding(
@@ -47,7 +48,7 @@ class _FilteredListState extends State<FilteredList>
             ),
           ),
           child: const Text("Search Walks"),
-          onPressed: () => print("Search Walks") // ANIMATE A NEW SCREEN INTO OPENING https://drive.google.com/file/d/1aLuebSfOxLSHfNO9XQEEtzAB-jmhArzx/view PAGE 5
+          onPressed: () => print("Search Walks") // ANIMATE A NEW SCREEN INTO OPENING https://drive.google.com/file/d/1aLuebSfOxLSHfNO9XQEEtzAB-jmhArzx/view PAGE 5 (createMenu())
       ),
     );
   }
@@ -80,19 +81,44 @@ class _FilteredListState extends State<FilteredList>
                   //     ),
                   //   ],
                   // ),
-                  const FilterableFlag(values: CrimeType.values),
-                  const FilterableFlag(values: Length.values),
-                  const FilterableFlag(values: Location.values),
-                  const FilterableFlag(values: Difficulty.values),
-                  const FilterableFlag(values: TransportType.values),
+                  FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
+                  FilterableFlag(key: lengthKey, values: Length.values),
+                  FilterableFlag(key: locationKey, values: Location.values),
+                  FilterableFlag(key: difficultyKey, values: Difficulty.values),
+                  FilterableFlag(key: transportTypeKey, values: TransportType.values),
                   Row(
                     children: [
-                      ElevatedButton(
-                        onPressed: () => model.filterWalks(0, -1 >>> 1, crimeType, length, location, difficulty, transportType),
-                        child: Text("Search")),
-                      ElevatedButton(
-                        onPressed: () => model.resetFilter(),
-                        child: Text("Clear"))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () => model.filterWalks(
+                              0,
+                              -1 >>> 1,
+                              crimeTypeKey.currentState!.state,
+                              lengthKey.currentState!.state,
+                              locationKey.currentState!.state,
+                              difficultyKey.currentState!.state,
+                              transportTypeKey.currentState!.state),
+                          child: const Text("Search")
+                        )
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () => model.resetFilter(),
+                          child: const Text("Clear")
+                        )
+                      )
                     ]
                   ),
                 ]
@@ -101,11 +127,11 @@ class _FilteredListState extends State<FilteredList>
                   height: MediaQuery.of(context).size.height / 2.5,
                   child: ListView.builder(itemBuilder: (context, index)
                     {
-                      var walk = model.crimeWalks[index];
+                      var walk = model.filteredWalks[index];
 
                       return ListTile(title: Text(walk.name), leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car), onTap: () => print("TODO: open crime walk"));
                     },
-                    itemCount: model.crimeWalks.length
+                    itemCount: model.filteredWalks.length
                   )
                 ),
               ),
@@ -125,7 +151,7 @@ class FilterableFlag<T extends Enum> extends StatefulWidget
   final List<T> values;
 
   @override
-  State<StatefulWidget> createState() => _FilterableFlagState();
+  State<StatefulWidget> createState() => _FilterableFlagState<T>();
 }
 
 class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
@@ -138,14 +164,6 @@ class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
   {
     super.initState();
     state = widget.values.first;
-  }
-
-  // Generated via copilot
-  String fancyEnumName(T value)
-  {
-    return value.toString().split('.').first.replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) {
-      return '${match.group(1)} ${match.group(2)}';
-    });
   }
 
   @override
@@ -172,5 +190,13 @@ class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
           ],
         )
     );
+  }
+
+  // Generated via copilot
+  String fancyEnumName(T value)
+  {
+    return value.toString().split('.').first.replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) {
+      return '${match.group(1)} ${match.group(2)}';
+    });
   }
 }
