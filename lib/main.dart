@@ -53,7 +53,7 @@ class _MyAppState extends State<MyApp>{
             ],
           ),
         ),
-        bottomNavigationBar: const FilteredList(), // TODO: maybe not?
+        bottomNavigationBar: const FilteredList(),
       ),
     );
   }

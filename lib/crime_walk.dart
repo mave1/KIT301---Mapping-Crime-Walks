@@ -53,12 +53,12 @@ class CrimeWalkModel extends ChangeNotifier
   {
     crimeWalks.add(CrimeWalk(name: "The Crime Walk", description: "A walk through the city of Hobart", yearOccurred: 2021, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
     crimeWalks.add(CrimeWalk(name: "The Crime Drive", description: "A drive through the city of Launceston", yearOccurred: 2000, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
-    crimeWalks.add(CrimeWalk(name: "The Crime Walk 2", description: "A walk through the city of Launceston", yearOccurred: 1980, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
-    crimeWalks.add(CrimeWalk(name: "The Crime Drive 2", description: "A drive through the city of Hobart", yearOccurred: 1990, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
-    crimeWalks.add(CrimeWalk(name: "The Crime Drive 3", description: "A drive through the city of Launceston", yearOccurred: 1500, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
+    crimeWalks.add(CrimeWalk(name: "The Crime Walk 2", description: "A walk through the city of Hobart", yearOccurred: 1980, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
+    crimeWalks.add(CrimeWalk(name: "The Crime Drive 2", description: "A drive through the city of Launceston", yearOccurred: 1990, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
+    crimeWalks.add(CrimeWalk(name: "The Crime Drive 3", description: "A drive through the city of Hobart", yearOccurred: 1500, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
     crimeWalks.add(CrimeWalk(name: "The Crime Drive 4", description: "A drive through the city of Launceston", yearOccurred: 1670, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
     crimeWalks.add(CrimeWalk(name: "The Crime Walk 3", description: "A walk through the city of Hobart", yearOccurred: 1280, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
-    crimeWalks.add(CrimeWalk(name: "The Crime Walk 4", description: "A walk through the city of Hobart", yearOccurred: 1800, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
+    crimeWalks.add(CrimeWalk(name: "The Crime Walk 4", description: "A walk through the city of Launceston", yearOccurred: 1800, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
 
     resetFilter();
   }
@@ -73,7 +73,16 @@ class CrimeWalkModel extends ChangeNotifier
     filteredWalks.clear();
 
     for (var element in crimeWalks) {
-      if (element.yearOccurred >= minYear && element.yearOccurred <= maxYear && (crimeType == CrimeType.ALL || element.crimeType == crimeType) && (length == Length.ALL || element.length == length) && (location == Location.ALL || element.location == location) && (difficulty == Difficulty.ALL || element.difficulty == difficulty) && (transportType == TransportType.ALL || element.transportType == transportType)) filteredWalks.add(element);
+      if (element.yearOccurred >= minYear &&
+          element.yearOccurred <= maxYear &&
+          (crimeType == CrimeType.ALL || element.crimeType == crimeType) &&
+          (length == Length.ALL || element.length == length) &&
+          (location == Location.ALL || element.location == location) &&
+          (difficulty == Difficulty.ALL || element.difficulty == difficulty) &&
+          (transportType == TransportType.ALL || element.transportType == transportType))
+      {
+        filteredWalks.add(element);
+      }
     }
 
     update();
