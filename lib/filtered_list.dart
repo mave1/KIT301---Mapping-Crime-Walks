@@ -101,9 +101,9 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
             children: [
               const Center(child: Text("Crime Walks Tasmania")), // TODO: translation string? https://pub.dev/packages/i18n_extension ?
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
