@@ -13,6 +13,9 @@ dependencies:
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   url_launcher: ^6.2.6
+  flutter_map_marker_popup: ^6.1.2
+  location: ^6.0.1
+
 
 dev_dependencies:
   flutter_test:
