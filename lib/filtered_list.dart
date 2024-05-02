@@ -14,8 +14,6 @@ class FilteredList extends StatefulWidget
 {
   const FilteredList({super.key});
 
-  final EdgeInsets insets = const EdgeInsets.only(right: 12.0);
-
   @override
   _FilteredListState createState() => _FilteredListState();
 }
@@ -69,10 +67,10 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   Widget createButton()
   {
     return Padding(
-      padding: widget.insets,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            minimumSize: Size(MediaQuery.of(context).size.width - 40 - widget.insets.right, 50),
+            // minimumSize: const Size(0, 50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -86,119 +84,123 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
 
   Widget createMenu(BuildContext context, CrimeWalkModel model, _)
   {
-    return Wrap(
-      children: [
-        SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: const Offset(0, 0),
-          ).animate(CurvedAnimation(
-            parent: animationController,
-            curve: Curves.easeInOut,
-          )),
-          child: showMenu ?
-          Column(
-            children: [
-              const Center(child: Text("Crime Walks Tasmania")), // TODO: translation string? https://pub.dev/packages/i18n_extension ?
-              Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Padding(padding: EdgeInsets.only(right: 8), child: Text("Year Range:")),
-                            SizedBox( // TODO: EXPANDED
-                              width: 60,
-                              child: TextField(
-                                controller: startYearController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Start Year',
-                                ),
-                              ),
-                            ),
-                            SizedBox( // TODO: EXPANDED
-                              width: 60,
-                              child: TextField(
-                                controller: endYearController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'End Year',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
-                        FilterableFlag(key: lengthKey, values: Length.values),
-                        FilterableFlag(key: locationKey, values: Location.values),
-                        FilterableFlag(key: difficultyKey, values: Difficulty.values),
-                        FilterableFlag(key: transportTypeKey, values: TransportType.values),
-                        Row(
+    return IntrinsicHeight(
+      child: Column(
+        children: [
+          SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: const Offset(0, 0),
+            ).animate(CurvedAnimation(
+              parent: animationController,
+              curve: Curves.easeInOut,
+            )),
+            child: showMenu ?
+            Column(
+              children: [
+                const Center(child: Text("Crime Walks Tasmania")), // TODO: translation string? https://pub.dev/packages/i18n_extension ?
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Padding(
-                                  padding: const EdgeInsets.only(right: 4),
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      onPressed: () => model.filterWalks(
-                                          int.parse(startYearController.value.text),
-                                          int.parse(endYearController.value.text),
-                                          crimeTypeKey.currentState!.state,
-                                          lengthKey.currentState!.state,
-                                          locationKey.currentState!.state,
-                                          difficultyKey.currentState!.state,
-                                          transportTypeKey.currentState!.state),
-                                      child: const Text("Search")
-                                  )
+                              const Padding(padding: EdgeInsets.only(right: 8), child: Text("Year Range:")),
+                              SizedBox( // TODO: EXPANDED
+                                width: 60,
+                                child: TextField(
+                                  controller: startYearController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Start Year',
+                                  ),
+                                ),
                               ),
-                              Padding(
-                                  padding: const EdgeInsets.only(left: 4),
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                              SizedBox( // TODO: EXPANDED
+                                width: 60,
+                                child: TextField(
+                                  controller: endYearController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'End Year',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
+                          FilterableFlag(key: lengthKey, values: Length.values),
+                          FilterableFlag(key: locationKey, values: Location.values),
+                          FilterableFlag(key: difficultyKey, values: Difficulty.values),
+                          FilterableFlag(key: transportTypeKey, values: TransportType.values),
+                          Row(
+                              children: [
+                                Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
                                         ),
-                                      ),
-                                      onPressed: () => model.resetFilter(),
-                                      child: const Text("Clear")
-                                  )
-                              )
-                            ]
-                        ),
-                      ]
-                  ),
-                  Expanded(child: Container(
-                      height: MediaQuery.of(context).size.height / 2.5,
-                      child: ListView.builder(itemBuilder: (context, index)
-                      {
-                        var walk = model.filteredWalks[index];
+                                        onPressed: () => model.filterWalks(
+                                            int.parse(startYearController.value.text),
+                                            int.parse(endYearController.value.text),
+                                            crimeTypeKey.currentState!.state,
+                                            lengthKey.currentState!.state,
+                                            locationKey.currentState!.state,
+                                            difficultyKey.currentState!.state,
+                                            transportTypeKey.currentState!.state),
+                                        child: const Text("Search")
+                                    )
+                                ),
+                                Padding(
+                                    padding: const EdgeInsets.only(left: 4),
+                                    child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () => model.resetFilter(),
+                                        child: const Text("Clear")
+                                    )
+                                )
+                              ]
+                          ),
+                        ]
+                    ),
+                    Expanded(child: Container(
+                        height: MediaQuery.of(context).size.height / 2.5,
+                        child: ListView.builder(itemBuilder: (context, index)
+                        {
+                          var walk = model.filteredWalks[index];
 
-                        return ListTile(title: Text(walk.name), subtitle: Text(walk.description), leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car), onTap: () => print("TODO: open crime walk"));
-                      },
-                          itemCount: model.filteredWalks.length
-                      )
-                  ),
-                  ),
-                ],
-              ),
-            ],
-          ) : const SizedBox(),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: createButton()
+                          return ListTile(title: Text(walk.name), subtitle: Text(walk.description), leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car), onTap: () => print("TODO: open crime walk"));
+                        },
+                            itemCount: model.filteredWalks.length
+                        )
+                    ),
+                    ),
+                  ],
+                ),
+              ],
+            ) : const SizedBox(),
           ),
-        ),
-      ]
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: createButton()
+              ),
+              // createButton()
+            ]
+          ),
+        ]
+      )
     );
   }
 }
