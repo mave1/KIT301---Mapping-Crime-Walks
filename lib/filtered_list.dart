@@ -31,8 +31,6 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   bool showMenu = false;
   late AnimationController animationController;
 
-
-
   Widget _buildSummaryField(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,12 +45,12 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         ),
         const SizedBox(height: 5.0),
         Text(
-          value,
+          value.capitalize(),
           style: const TextStyle(
             fontSize: 14.0,
           ),
         ),
-        Divider(), // Add a divider between fields
+        const Divider(), // Add a divider between fields
       ],
     );
   }
@@ -62,19 +60,12 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         context: context,
         builder: (BuildContext context) {
           return SingleChildScrollView(
+
             child: Container(
-              padding: EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(onPressed: () => print("Walk started"), child: const Text('Start Walk')),
-                        ),
-                      ]
-                  ),
                   const Text(
                     'Walk Summary',
                     style: TextStyle(
@@ -83,14 +74,23 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                     ),
                   ),
                   const SizedBox(height: 10.0,),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: FilledButton(onPressed: () => print("Walk started"), child: const Text('Start Walk')),
+                        ),
+                      ]
+                  ),
+                  const Divider(), // Add a divider between fields
                   _buildSummaryField('Name', walk.name.toString()),
                   _buildSummaryField('Description', walk.description.toString()),
-                  _buildSummaryField('Crime Type', walk.crimeType.toString()),
-                  _buildSummaryField('Length', walk.length.toString()),
-                  _buildSummaryField('Difficulty', walk.difficulty.toString()),
-                  _buildSummaryField('Location', walk.location.toString()),
-                  _buildSummaryField('Physical Requirments', 'TODO'),
-                  _buildSummaryField('Transport Type', walk.transportType.toString()),
+                  _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" ")),
+                  _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" ")),
+                  _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" ")),
+                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" ")),
+                  _buildSummaryField('Physical Requirements', 'TODO'),
+                  _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" ")),
                 ],
               ),
             ),
@@ -182,42 +182,44 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  const Padding(padding: EdgeInsets.only(right: 8), child: Text("Year Range:")),
-                                  SizedBox( // TODO: EXPANDED
-                                    width: 60,
-                                    child: TextField(
-                                      controller: startYearController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: 'Start Year',
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox( // TODO: EXPANDED
-                                    width: 60,
-                                    child: TextField(
-                                      controller: endYearController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: 'End Year',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              // Row(
+                              //   children: [
+                              //     const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("Year Range:")),
+                              //     SizedBox( // TODO: EXPANDED
+                              //       width: 60,
+                              //       child: TextField(
+                              //         controller: startYearController,
+                              //         keyboardType: TextInputType.number,
+                              //         decoration: const InputDecoration(
+                              //           border: OutlineInputBorder(),
+                              //           labelText: 'Start Year',
+                              //         ),
+                              //       ),
+                              //     ),
+                              //     SizedBox( // TODO: EXPANDED
+                              //       width: 60,
+                              //       child: TextField(
+                              //         controller: endYearController,
+                              //         keyboardType: TextInputType.number,
+                              //         decoration: const InputDecoration(
+                              //           border: OutlineInputBorder(),
+                              //           labelText: 'End Year',
+                              //         ),
+                              //       ),
+                              //     ),
+                              //   ],
+                              // ),
                               FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
                               FilterableFlag(key: lengthKey, values: Length.values),
                               FilterableFlag(key: locationKey, values: Location.values),
                               FilterableFlag(key: difficultyKey, values: Difficulty.values),
                               FilterableFlag(key: transportTypeKey, values: TransportType.values),
                               Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Padding(
-                                        padding: const EdgeInsets.only(right: 4),
+                                    Flexible(
+                                        child: Padding(
+                                        padding: const EdgeInsets.only(right: 4, left: 8),
                                         child: ElevatedButton(
                                             style: ElevatedButton.styleFrom(
                                               shape: RoundedRectangleBorder(
@@ -234,8 +236,10 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                                 transportTypeKey.currentState!.state),
                                             child: const Text("Search")
                                         )
+                                      ),
                                     ),
-                                    Padding(
+                                    Flexible(
+                                        child: Padding(
                                         padding: const EdgeInsets.only(left: 4),
                                         child: ElevatedButton(
                                             style: ElevatedButton.styleFrom(
@@ -246,6 +250,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                             onPressed: () => model.resetFilter(),
                                             child: const Text("Clear")
                                         )
+                                      )
                                     )
                                   ]
                               ),
@@ -316,27 +321,24 @@ class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-        alignment: Alignment.centerLeft,
-        child: Row(
-          children: [
-            Padding(padding: const EdgeInsets.only(right: 8), child: Text("${fancyEnumName(state)}:")),
-            DropdownButton(
-              value: state,
-              items: widget.values.map((T value) {
-                return DropdownMenuItem(
-                  value: value,
-                  child: Text(value.toString().split('.').last.capitalize()),
-                );
-              }).toList(),
-              onChanged: (T? value) {
-                setState(() {
-                  state = value!;
-                });
-              },
-            ),
-          ],
-        )
+    return Row(
+        children: [
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text("${fancyEnumName(state)}:")),
+          DropdownButton(
+            value: state,
+            items: widget.values.map((T value) {
+              return DropdownMenuItem(
+                value: value,
+                child: Text(value.toString().split('.').last.capitalize()),
+              );
+            }).toList(),
+            onChanged: (T? value) {
+              setState(() {
+                state = value!;
+              });
+            },
+          ),
+        ],
     );
   }
 
