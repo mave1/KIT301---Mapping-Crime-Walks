@@ -1,5 +1,8 @@
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
+import 'dart:convert';
+
+import 'package:crime_walks_app/api.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -7,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MaterialApp(
@@ -22,6 +26,24 @@ class MyApp extends StatefulWidget{
 }
 
 class _MyAppState extends State<MyApp>{
+
+  List listOfPoints = []; //List of points on the map to map out route
+  List<LatLng> points = []; //List of points to create routes between listOfPoints
+
+  //function to consume the openrouteservice API
+  //TODO: have function take in data to then input into getRouteUrl
+  getCoordinates() async {
+    //temporary entry to test code
+    var responce = await http.get(getRouteUrl("147.325439, -42.90395", "147.329874, -42.879601"));
+
+    setState(() {
+      if(responce.statusCode == 200){
+        var data = jsonDecode(responce.body);
+        listOfPoints = data['features'][0]['geometry']['coordinates'];
+        points = listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList();
+      }
+    });
+  }
 
   late double currentLat = 0.0;
   late double currentLong = 0.0;
@@ -78,6 +100,52 @@ class _MyAppState extends State<MyApp>{
 
   @override
   Widget build(BuildContext context) {
+    var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
+
+    // list of locations within the app
+    markerLocations = [
+      Marker(
+        point: const LatLng(-42.90395, 147.325439),
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () {
+            //TODO: input actual data into function
+            getCoordinates();
+          },
+          child: const Icon(
+            Icons.location_pin,
+            size: 40,
+            color: Colors.red,
+          ),
+        ),
+      ),
+      Marker(
+        point: const LatLng(-42.879601, 147.329874),
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () {
+            // TODO: open walk information here
+          },
+          child: const Icon(
+            Icons.location_pin,
+            size: 40,
+            color: Colors.red,
+          ),
+        ),
+      ),
+      Marker (
+        point: LatLng(currentLat, currentLong),
+        child: const Icon(
+          Icons.circle,
+          size: 30,
+          color: Colors.blue,
+        )
+      )
+          )
+    ];
+
     return ChangeNotifierProvider(
       create: (context) => CrimeWalkModel(),
       child: Scaffold(
@@ -89,25 +157,25 @@ class _MyAppState extends State<MyApp>{
                     Flexible(
                       child: FlutterMap(
                         options: const MapOptions(
-                          initialCenter: LatLng(-41.45451960, 145.97066470),
-                          initialZoom: 7,
+                          initialCenter: LatLng(-42.8794, 147.3294),
+                          initialZoom: 11,
                         ),
                         children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.example.app',
-                          ),
+                          openStreetMapTileLayer, //input map
                           MarkerLayer(
-                            markers: [
-                              Marker (
-                                  point: LatLng(currentLat, currentLong),
-                                  child: const Icon(
-                                    Icons.circle,
-                                    size: 30,
-                                    color: Colors.blue,
-                                  ))
-                            ],
+                            markers: markerLocations,
                           ),
+                          if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
+                            PolylineLayer(
+                              polylineCulling: true,
+                              polylines: [
+                                Polyline(
+                                    points: points,
+                                    color: Colors.red,
+                                    strokeWidth: 5
+                                )
+                              ],
+                            ),
                           PopupMarkerLayer(
                               options: PopupMarkerLayerOptions(
                                   markers: [
@@ -126,14 +194,7 @@ class _MyAppState extends State<MyApp>{
                                     ),
                                   ))
                           ),
-                          RichAttributionWidget(
-                            attributions: [
-                              TextSourceAttribution(
-                                'OpenStreetMap contributors',
-                                onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-                              ),
-                            ],
-                          ),
+                          copyrightNotice, // input copyright
                         ],
                       ),
                     ),
@@ -152,76 +213,25 @@ class _MyAppState extends State<MyApp>{
         ),
       ),
     );
-
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            Flexible(   
-              child: FlutterMap(
-                options: const MapOptions(
-                  initialCenter: LatLng(-42.8794, 147.3294),
-                  initialZoom: 11,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.app',
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker (
-                        point: LatLng(currentLat, currentLong),
-                        child: Icon(
-                          Icons.circle,
-                          size: 30,
-                          color: Colors.blue,
-                        ))
-                    ],
-                  ),
-                  PopupMarkerLayer(
-                    options: PopupMarkerLayerOptions(
-                      markers: [
-                        const Marker(
-                          point: LatLng(-40.87936, 147.32941),
-                          child: Icon(
-                            Icons.location_pin,
-                            size: 40,
-                            color: Colors.red,
-                          ))
-                      ],
-                      popupDisplayOptions: PopupDisplayOptions(
-                        builder: (BuildContext context, Marker marker) => Container(
-                          color: Colors.white,
-                          child: Text(informationPopup(marker)),
-                        ),
-                    ))
-                  ),
-                  RichAttributionWidget(
-                    attributions: [
-                      TextSourceAttribution(
-                        'OpenStreetMap contributors',
-                        onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-                      ),
-                    ],
-                  ),
-
-                  //Positioned.fill(
-                    //child: Align(
-                      //alignment: Alignment.center,
-                      //child: _getMarker())
-                  //)
-                ],
-              ),
-            ),
-          ],
-        )),
-    );
   }
 }
 
+// retrieve openstreetmap map
+TileLayer get openStreetMapTileLayer => TileLayer(
+  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  userAgentPackageName: 'com.example.app',
+);
+
+// retrieve copyright notice
+RichAttributionWidget get copyrightNotice => RichAttributionWidget(
+  attributions: [
+    TextSourceAttribution(
+      'OpenStreetMap contributors',
+      onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
+    ),
+  ],
+);
 
 informationPopup(Marker marker) {
   return 'popupB';
 }
-
