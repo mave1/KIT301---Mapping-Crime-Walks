@@ -1,8 +1,7 @@
+import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
 import 'dart:convert';
-
-import 'package:crime_walks_app/api.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -143,7 +142,6 @@ class _MyAppState extends State<MyApp>{
           color: Colors.blue,
         )
       )
-          )
     ];
 
     return ChangeNotifierProvider(
