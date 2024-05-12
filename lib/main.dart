@@ -97,6 +97,35 @@ class _MyAppState extends State<MyApp>{
                             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.example.app',
                           ),
+                          MarkerLayer(
+                            markers: [
+                              Marker (
+                                  point: LatLng(currentLat, currentLong),
+                                  child: const Icon(
+                                    Icons.circle,
+                                    size: 30,
+                                    color: Colors.blue,
+                                  ))
+                            ],
+                          ),
+                          PopupMarkerLayer(
+                              options: PopupMarkerLayerOptions(
+                                  markers: [
+                                    const Marker(
+                                        point: LatLng(-40.87936, 147.32941),
+                                        child: Icon(
+                                          Icons.location_pin,
+                                          size: 40,
+                                          color: Colors.red,
+                                        ))
+                                  ],
+                                  popupDisplayOptions: PopupDisplayOptions(
+                                    builder: (BuildContext context, Marker marker) => Container(
+                                      color: Colors.white,
+                                      child: Text(informationPopup(marker)),
+                                    ),
+                                  ))
+                          ),
                           RichAttributionWidget(
                             attributions: [
                               TextSourceAttribution(
