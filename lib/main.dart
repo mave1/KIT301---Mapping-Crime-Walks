@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
@@ -27,9 +28,9 @@ class MyApp extends StatefulWidget{
 }
 
 class _MyAppState extends State<MyApp>{
-
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
+  late MapController mapController; // Controller for map
   late double currentLat = 0.0;
   late double currentLong = 0.0;
   Position? _position;
@@ -45,6 +46,7 @@ class _MyAppState extends State<MyApp>{
         var data = jsonDecode(responce.body);
         listOfPoints = data['features'][0]['geometry']['coordinates'];
         points = listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList();
+        focusOnRoute(points); // Auto-focus on the route after data is loaded
       }
     });
   }
@@ -93,7 +95,7 @@ class _MyAppState extends State<MyApp>{
   }
 
   void initLocation() {
-    final LocationSettings locationSettings = LocationSettings(
+    const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 100,
     );
@@ -108,7 +110,19 @@ class _MyAppState extends State<MyApp>{
   void initState() {
     _getCurrentLocation();
     initLocation();
+    mapController = MapController();
     super.initState();
+  }
+
+  void focusOnRoute(List<LatLng> routePoints) {
+    if (routePoints.isNotEmpty) {
+      double minLat = routePoints.map((p) => p.latitude).reduce(min);
+      double maxLat = routePoints.map((p) => p.latitude).reduce(max);
+      double minLon = routePoints.map((p) => p.longitude).reduce(min);
+      double maxLon = routePoints.map((p) => p.longitude).reduce(max);
+      LatLngBounds bounds = LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon));
+      mapController.fitBounds(bounds, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+    }
   }
 
   @override
@@ -168,6 +182,7 @@ class _MyAppState extends State<MyApp>{
                   children: [
                     Flexible(
                       child: FlutterMap(
+                        mapController: mapController,
                         options: const MapOptions(
                           initialCenter: LatLng(-42.8794, 147.3294),
                           initialZoom: 11,
@@ -190,6 +205,7 @@ class _MyAppState extends State<MyApp>{
                             ),
                           PopupMarkerLayer(
                               options: PopupMarkerLayerOptions(
+                                  popupController: PopupController(),
                                   markers: [
                                     const Marker(
                                         point: LatLng(-40.87936, 147.32941),
@@ -200,6 +216,7 @@ class _MyAppState extends State<MyApp>{
                                         ))
                                   ],
                                   popupDisplayOptions: PopupDisplayOptions(
+                                    snap: PopupSnap.markerTop,
                                     builder: (BuildContext context, Marker marker) => Container(
                                       color: Colors.white,
                                       child: Text(informationPopup(marker)),
