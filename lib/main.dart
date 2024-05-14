@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
@@ -28,6 +30,9 @@ class _MyAppState extends State<MyApp>{
 
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
+  late double currentLat = 0.0;
+  late double currentLong = 0.0;
+  Position? _position;
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
@@ -44,17 +49,16 @@ class _MyAppState extends State<MyApp>{
     });
   }
 
-  late double currentLat = 0.0;
-  late double currentLong = 0.0;
-  Position? _position;
-
   void _getCurrentLocation() async {
     Position position = await _determinePosition();
 
-    _position = position;
+    setState(() {
+      _position = position;
 
-    currentLat = _position!.latitude;
-    currentLong = _position!.longitude;
+      currentLat = _position!.latitude;
+      currentLong = _position!.longitude;
+    });
+
   }
 
   Future<Position> _determinePosition() async {
@@ -84,17 +88,27 @@ class _MyAppState extends State<MyApp>{
         'Location permissions are permanently denied, we cannot request permissions.');
     }
 
-      return await Geolocator.getCurrentPosition();
+      Position current = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      return current;
+  }
+
+  void initLocation() {
+    final LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 100,
+    );
+
+    StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
+      locationSettings: locationSettings).listen((Position? position) { 
+        _getCurrentLocation();
+      });
   }
 
   @override
   void initState() {
-    _init();
-    super.initState();
-  }
-
-  _init() {
     _getCurrentLocation();
+    initLocation();
+    super.initState();
   }
 
   @override
@@ -138,7 +152,7 @@ class _MyAppState extends State<MyApp>{
         point: LatLng(currentLat, currentLong),
         child: const Icon(
           Icons.circle,
-          size: 30,
+          size: 15,
           color: Colors.blue,
         )
       )
