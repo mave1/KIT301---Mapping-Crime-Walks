@@ -31,7 +31,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   bool showMenu = false;
   late AnimationController animationController;
 
-  Widget _buildSummaryField(String label, String value) {
+  Widget _buildSummaryField(String label, String value, bool shouldCapitalize) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -45,7 +45,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         ),
         const SizedBox(height: 5.0),
         Text(
-          value.capitalize(),
+          shouldCapitalize ? value.capitalize() : value,
           style: const TextStyle(
             fontSize: 14.0,
           ),
@@ -60,7 +60,6 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         context: context,
         builder: (BuildContext context) {
           return SingleChildScrollView(
-
             child: Container(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -83,14 +82,14 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                       ]
                   ),
                   const Divider(), // Add a divider between fields
-                  _buildSummaryField('Name', walk.name.toString()),
-                  _buildSummaryField('Description', walk.description.toString()),
-                  _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" ")),
-                  _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" ")),
-                  _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" ")),
-                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" ")),
-                  _buildSummaryField('Physical Requirements', 'TODO'),
-                  _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" ")),
+                  _buildSummaryField('Name', walk.name.toString(), false),
+                  _buildSummaryField('Description', walk.description.toString(), false),
+                  _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Physical Requirements', 'TODO', true),
+                  _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
                 ],
               ),
             ),
@@ -219,7 +218,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                   children: [
                                     Flexible(
                                         child: Padding(
-                                        padding: const EdgeInsets.only(right: 4, left: 8),
+                                        padding: const EdgeInsets.only(left: 8, right: 4),
                                         child: ElevatedButton(
                                             style: ElevatedButton.styleFrom(
                                               shape: RoundedRectangleBorder(
