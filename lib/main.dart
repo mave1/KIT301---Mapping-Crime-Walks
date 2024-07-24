@@ -4,8 +4,10 @@ import 'dart:math';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
+import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -37,9 +39,9 @@ class _MyAppState extends State<MyApp>{
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates() async {
+  getCoordinates(var latlngOne, var latlngTwo, var latlngThree, var latlngfour) async {
     //temporary entry to test code
-    var responce = await http.get(getRouteUrl("147.325439, -42.90395", "147.329874, -42.879601"));
+    var responce = await http.get(getRouteUrl("$latlngTwo, $latlngOne", "$latlngfour, $latlngThree"));
 
     setState(() {
       if(responce.statusCode == 200){
@@ -121,14 +123,15 @@ class _MyAppState extends State<MyApp>{
       double minLon = routePoints.map((p) => p.longitude).reduce(min);
       double maxLon = routePoints.map((p) => p.longitude).reduce(max);
       LatLngBounds bounds = LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon));
-      mapController.fitBounds(bounds, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+      //mapController.fitCamera(CameraFit.bounds(bounds: bounds), padding: EdgeInsets.all(50.0));
+      mapController.fitCamera(CameraFit.bounds(bounds: bounds)); 
     }
   }
 
   @override
   Widget build(BuildContext context) {
     var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
-
+    
     // list of locations within the app
     markerLocations = [
       Marker(
@@ -138,7 +141,24 @@ class _MyAppState extends State<MyApp>{
         child: GestureDetector(
           onTap: () {
             //TODO: input actual data into function
-            getCoordinates();
+            getCoordinates(-42.90395, 147.325439, -42.91, 147.32);
+          },
+          child: const Icon(
+            Icons.location_pin,
+            size: 40,
+            color: Colors.red,
+          ),
+        ),
+      ),
+      //Extra sub markers until actual child markers are added
+      Marker(
+        point: const LatLng(-42.91, 147.32),
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () {
+            //TODO: input actual data into function
+            //getCoordinates();
           },
           child: const Icon(
             Icons.location_pin,
@@ -148,6 +168,19 @@ class _MyAppState extends State<MyApp>{
         ),
       ),
       Marker(
+        point: const LatLng(-42.92, 147.31),
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          child: const Icon(
+            Icons.location_pin,
+            size: 40,
+            color: Colors.red,
+          ),
+        ),
+      ),
+
+      /**Marker(
         point: const LatLng(-42.879601, 147.329874),
         width: 40,
         height: 40,
@@ -161,7 +194,7 @@ class _MyAppState extends State<MyApp>{
             color: Colors.red,
           ),
         ),
-      ),
+      ),**/
       Marker (
         point: LatLng(currentLat, currentLong),
         child: const Icon(
@@ -194,7 +227,6 @@ class _MyAppState extends State<MyApp>{
                           ),
                           if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
-                              polylineCulling: true,
                               polylines: [
                                 Polyline(
                                     points: points,

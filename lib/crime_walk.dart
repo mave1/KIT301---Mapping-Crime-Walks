@@ -1,4 +1,3 @@
-import 'package:crimewalksapp/crime_walk.dart';
 import 'package:flutter/material.dart';
 
 enum CrimeType

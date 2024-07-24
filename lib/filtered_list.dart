@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'crime_walk.dart';
 
@@ -120,8 +118,11 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
 
       animateMenu = !animateMenu;
 
-      if (animateMenu) animationController.forward();
-      else animationController.reverse();
+      if (animateMenu) {
+        animationController.forward();
+      } else {
+        animationController.reverse();
+      }
     });
   }
 
@@ -256,7 +257,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                               ),
                             ]
                         ),
-                        Expanded(child: Container(
+                        Expanded(child: SizedBox(
                             height: MediaQuery.of(context).size.height / 2.5,
                             child: ListView.builder(itemBuilder: (context, index)
                             {
