@@ -7,7 +7,7 @@ import 'package:crimewalksapp/filtered_list.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/flutter_map.dart'; 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
@@ -31,9 +31,9 @@ class _MyAppState extends State<MyApp>{
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
   late MapController mapController; // Controller for map
-  late double currentLat = 0.0;
-  late double currentLong = 0.0;
-  Position? _position;
+  late double currentLat = 0.0; //User's current location - latitude
+  late double currentLong = 0.0;  //User's current location - Longitude
+  Position? _position; //Position object to store user's current location
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
@@ -51,21 +51,24 @@ class _MyAppState extends State<MyApp>{
     });
   }
 
+  //function to retrieve the user's current location
   void _getCurrentLocation() async {
-    Position position = await _determinePosition();
+    Position position = await _determinePosition(); //gather the user's current location
 
+    //extract the logitude and latitude from the user's current position
     setState(() {
       _position = position;
 
-      currentLat = _position!.latitude;
-      currentLong = _position!.longitude;
+      currentLat = _position!.latitude; //user's current latitude
+      currentLong = _position!.longitude; //user's current longitude
     });
 
   }
 
+  //a function to ask location services permissions and await the user's current location
   Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    bool serviceEnabled; //if the location services are enabled
+    LocationPermission permission; //user's permission given to location services
 
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -76,30 +79,34 @@ class _MyAppState extends State<MyApp>{
       return Future.error('Location services are disabled.');
     }
 
+    //if permissions are denied, do not collect the user's current location thi time but still ask next time the app loads.
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+        return Future.error('Location permissions are denied'); //return error message
       }
     }
 
+    // Permissions are denied forever, handle appropriately - never ask for permission again.
     if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
       return Future.error(
-        'Location permissions are permanently denied, we cannot request permissions.');
+        'Location permissions are permanently denied, we cannot request permissions.'); //return error message
     }
 
+      //store and return the user's current location if the proper permissions are given
       Position current = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       return current;
   }
 
+  //instatciate the user's location with high accuracy 
   void initLocation() {
     const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 100,
     );
 
+    //opens a stream to listen to changes in the user's current location
     StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
       locationSettings: locationSettings).listen((Position? position) { 
         _getCurrentLocation();
@@ -108,8 +115,8 @@ class _MyAppState extends State<MyApp>{
 
   @override
   void initState() {
-    _getCurrentLocation();
-    initLocation();
+    _getCurrentLocation(); //collect the user's current location
+    initLocation(); 
     mapController = MapController();
     super.initState();
   }
@@ -162,6 +169,7 @@ class _MyAppState extends State<MyApp>{
           ),
         ),
       ),
+      //Marker for the user's current location
       Marker (
         point: LatLng(currentLat, currentLong),
         child: const Icon(
@@ -215,6 +223,7 @@ class _MyAppState extends State<MyApp>{
                                           color: Colors.red,
                                         ))
                                   ],
+                                  //popup test marker
                                   popupDisplayOptions: PopupDisplayOptions(
                                     snap: PopupSnap.markerTop,
                                     builder: (BuildContext context, Marker marker) => Container(
@@ -261,6 +270,7 @@ RichAttributionWidget get copyrightNotice => RichAttributionWidget(
   ],
 );
 
+//placeholder for the marker's popup information
 informationPopup(Marker marker) {
   return 'popupB';
 }
