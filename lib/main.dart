@@ -4,10 +4,10 @@ import 'dart:math';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:crimewalksapp/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,7 +16,11 @@ import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
-void main() {
+Future<void> main() async {
+  //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp;//(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MaterialApp(
     home: MyApp(),
     ));
@@ -36,12 +40,14 @@ class _MyAppState extends State<MyApp>{
   late double currentLat = 0.0;
   late double currentLong = 0.0;
   Position? _position;
-
+  
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
   getCoordinates(var latlngOne, var latlngTwo, var latlngThree, var latlngfour) async {
     //temporary entry to test code
     var responce = await http.get(getRouteUrl("$latlngTwo, $latlngOne", "$latlngfour, $latlngThree"));
+
+    //actual route will take start and end point, and then fill in route according to how many markers "Stops" there are
 
     setState(() {
       if(responce.statusCode == 200){

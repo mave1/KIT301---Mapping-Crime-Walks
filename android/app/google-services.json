@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "928361817319",
+    "project_id": "crime-walks",
+    "storage_bucket": "crime-walks.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928361817319:android:670937d41b41ca347cee42",
+        "android_client_info": {
+          "package_name": "com.example.kit301___mapping_crime_walks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBt0BfHD7-DC8ky3J9c0VHNN_xdKAuC7uo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
