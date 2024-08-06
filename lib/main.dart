@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
@@ -33,13 +32,18 @@ class _MyAppState extends State<MyApp>{
   late MapController mapController; // Controller for map
   late double currentLat = 0.0; //User's current location - latitude
   late double currentLong = 0.0;  //User's current location - Longitude
+  String currentLatString = ""; //User's current location in string form - latitude
+  String currentLongString = ""; //User's current location in string form - Longitude
   Position? _position; //Position object to store user's current location
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates() async {
-    //temporary entry to test code
-    var responce = await http.get(getRouteUrl("147.325439, -42.90395", "147.329874, -42.879601"));
+  getCoordinates(String lat1, String long1, String lat2, String long2) async {
+    String comma = ", ";
+    String point1 = long1 + comma + lat1;
+    String point2 = long2 + comma + lat2;
+
+    var responce = await http.get(getRouteUrl(point1, point2));
 
     setState(() {
       if(responce.statusCode == 200){
@@ -51,6 +55,7 @@ class _MyAppState extends State<MyApp>{
     });
   }
 
+
   //function to retrieve the user's current location
   void _getCurrentLocation() async {
     Position position = await _determinePosition(); //gather the user's current location
@@ -61,6 +66,8 @@ class _MyAppState extends State<MyApp>{
 
       currentLat = _position!.latitude; //user's current latitude
       currentLong = _position!.longitude; //user's current longitude
+      currentLatString = currentLat.toString();
+      currentLongString = currentLong.toString();
     });
 
   }
@@ -144,8 +151,7 @@ class _MyAppState extends State<MyApp>{
         height: 40,
         child: GestureDetector(
           onTap: () {
-            //TODO: input actual data into function
-            getCoordinates();
+            getCoordinates("-42.90395", "147.325439", "-42.879601", "147.329874");
           },
           child: const Icon(
             Icons.location_pin,
@@ -161,6 +167,7 @@ class _MyAppState extends State<MyApp>{
         child: GestureDetector(
           onTap: () {
             // TODO: open walk information here
+            getCoordinates("-42.90395", "147.325439", "-42.879601", "147.329874");
           },
           child: const Icon(
             Icons.location_pin,
@@ -172,10 +179,15 @@ class _MyAppState extends State<MyApp>{
       //Marker for the user's current location
       Marker (
         point: LatLng(currentLat, currentLong),
-        child: const Icon(
-          Icons.circle,
-          size: 15,
-          color: Colors.blue,
+        child: GestureDetector( 
+          onTap: () {
+          getCoordinates(currentLatString, currentLongString, "-42.879601", "147.329874");
+          },
+          child: const Icon(
+            Icons.circle,
+            size: 15,
+            color: Colors.blue,
+        )
         )
       )
     ];
