@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
-import 'package:crimewalksapp/firebase_options.dart';
+import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -15,11 +17,16 @@ import 'package:provider/provider.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart'; // for formatting the date
 
 Future<void> main() async {
-  //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp;//(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e){
+    debugPrint('Failed to initalizeApp');
+  }
 
   runApp(const MaterialApp(
     home: MyApp(),
@@ -40,18 +47,46 @@ class _MyAppState extends State<MyApp>{
   late double currentLat = 0.0;
   late double currentLong = 0.0;
   Position? _position;
+
+  // Function to fetch data from Firestore collections
+  Future<Map<String, dynamic>> fetchWalkData() async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+          .collection('Walks')
+          .doc('LHaMan7MAsW0pH08LDdu')
+          .get();
+
+      if (snapshot.exists) {
+        return snapshot.data()!;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return {};
+    }
+  }
+
+  /**Future<Map<String, dynamic>> fetchWalkData() async {
+    DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+      .collection('Walks')
+      .doc('LHaMan7MAsW0pH08LDdu')
+      .get();
+
+  return snapshot.data()!;   
+  }*/
   
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
   getCoordinates(var latlngOne, var latlngTwo, var latlngThree, var latlngfour) async {
     //temporary entry to test code
-    var responce = await http.get(getRouteUrl("$latlngTwo, $latlngOne", "$latlngfour, $latlngThree"));
+    var response = await http.get(getRouteUrl("$latlngTwo, $latlngOne", "$latlngfour, $latlngThree"));
 
     //actual route will take start and end point, and then fill in route according to how many markers "Stops" there are
 
     setState(() {
-      if(responce.statusCode == 200){
-        var data = jsonDecode(responce.body);
+      if(response.statusCode == 200){
+        var data = jsonDecode(response.body);
         listOfPoints = data['features'][0]['geometry']['coordinates'];
         points = listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList();
         focusOnRoute(points); // Auto-focus on the route after data is loaded
@@ -220,7 +255,96 @@ class _MyAppState extends State<MyApp>{
                 child: Column(
                   children: [
                     Flexible(
-                      child: FlutterMap(
+                      child: FutureBuilder<Map<String, dynamic>>(
+                      future: fetchWalkData(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        }
+
+                        if (!snapshot.hasData) {
+                        return Center(child: Text('No data found'));
+                      }
+
+                        var data = snapshot.data!;
+                        var title = data['Title'] ?? 'N/A';
+                        var crimeType = data['CrimeType'] ?? 'N/A';
+                        var description = data['Description'] ?? 'N/A';
+                        var difficulty = data['Difficulty'] ?? 'N/A';
+                        var length = data['Length'] ?? 0;
+                        var location = data['Location'] ?? GeoPoint(0, 0);
+                        var transportType = data['TransportType'] ?? 'N/A';
+                        var yearOccurred = data['YearOccured'] != null
+                          ? (data['YearOccured'] as Timestamp).toDate()
+                          : DateTime.now();
+
+                        markerLocations = [
+                          Marker(
+                            point: LatLng(location.latitude, location.longitude),
+                            width: 40,
+                            height: 40,
+                            child: GestureDetector(
+                              child: const Icon(
+                                Icons.location_pin,
+                                size: 40,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ];
+
+                        return FlutterMap(
+                          mapController: mapController,
+                          options: MapOptions(
+                            initialCenter: LatLng(location.latitude, location.longitude),
+                            initialZoom: 11,
+                          ),
+                          children: [
+                            openStreetMapTileLayer,
+                            MarkerLayer(
+                              markers: markerLocations,
+                            ),
+                            if (points.isNotEmpty)
+                              PolylineLayer(
+                                polylines: [
+                                  Polyline(
+                                    points: points,
+                                    color: Colors.red,
+                                    strokeWidth: 5,
+                                  ),
+                                ],
+                              ),
+                            PopupMarkerLayer(
+                              options: PopupMarkerLayerOptions(
+                                popupController: PopupController(),
+                                markers: markerLocations,
+                                popupDisplayOptions: PopupDisplayOptions(
+                                  snap: PopupSnap.markerTop,
+                                  builder: (BuildContext context, Marker marker) => Container(
+                                    color: Colors.white,
+                                    child: Text(
+                                      'Title: $title\n'
+                                      'Crime Type: $crimeType\n'
+                                      'Description: $description\n'
+                                      'Difficulty: $difficulty\n'
+                                      'Length: ${length.toString()} km\n'
+                                      'Transport Type: $transportType\n'
+                                      'Year Occurred: ${DateFormat.yMMMd().format(yearOccurred)}',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            copyrightNotice,
+                          ],
+                        );
+                      },
+                    ),
+                      /**child: FlutterMap(
                         mapController: mapController,
                         options: const MapOptions(
                           initialCenter: LatLng(-42.8794, 147.3294),
@@ -263,7 +387,7 @@ class _MyAppState extends State<MyApp>{
                           ),
                           copyrightNotice, // input copyright
                         ],
-                      ),
+                      ),*/
                     ),
                   ],
                 ),
