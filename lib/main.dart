@@ -48,33 +48,27 @@ class _MyAppState extends State<MyApp>{
   late double currentLong = 0.0;
   Position? _position;
 
-  // Function to fetch data from Firestore collections
-  Future<Map<String, dynamic>> fetchWalkData() async {
-    try {
-      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
-          .collection('Walks')
-          .doc('LHaMan7MAsW0pH08LDdu')
-          .get();
+  // Retrieves the instance of the database into a variable, allowing further manipulation
+  final db = FirebaseFirestore.instance;
 
-      if (snapshot.exists) {
-        return snapshot.data()!;
-      } else {
-        return {};
+  // Function that retrieves data from the database, puts it into a lits and then returns it
+  Future<List<Map<String, dynamic>>> fetchWalks() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db.collection("Walks").get();
+
+      List<Map<String, dynamic>> walks = [];
+
+      for (var docSnapshot in querySnapshot.docs) {
+        walks.add(docSnapshot.data());  // Collect each document's data into the list
       }
+
+      debugPrint("Successfully fetched ${walks.length} walks.");
+      return walks;
     } catch (e) {
-      print("Error fetching document: $e");
-      return {};
+      debugPrint("Error fetching walks: $e");
+      return []; // Return an empty list on error
     }
   }
-
-  /**Future<Map<String, dynamic>> fetchWalkData() async {
-    DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
-      .collection('Walks')
-      .doc('LHaMan7MAsW0pH08LDdu')
-      .get();
-
-  return snapshot.data()!;   
-  }*/
   
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
@@ -255,96 +249,7 @@ class _MyAppState extends State<MyApp>{
                 child: Column(
                   children: [
                     Flexible(
-                      child: FutureBuilder<Map<String, dynamic>>(
-                      future: fetchWalkData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        }
-
-                        if (!snapshot.hasData) {
-                        return Center(child: Text('No data found'));
-                      }
-
-                        var data = snapshot.data!;
-                        var title = data['Title'] ?? 'N/A';
-                        var crimeType = data['CrimeType'] ?? 'N/A';
-                        var description = data['Description'] ?? 'N/A';
-                        var difficulty = data['Difficulty'] ?? 'N/A';
-                        var length = data['Length'] ?? 0;
-                        var location = data['Location'] ?? GeoPoint(0, 0);
-                        var transportType = data['TransportType'] ?? 'N/A';
-                        var yearOccurred = data['YearOccured'] != null
-                          ? (data['YearOccured'] as Timestamp).toDate()
-                          : DateTime.now();
-
-                        markerLocations = [
-                          Marker(
-                            point: LatLng(location.latitude, location.longitude),
-                            width: 40,
-                            height: 40,
-                            child: GestureDetector(
-                              child: const Icon(
-                                Icons.location_pin,
-                                size: 40,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ];
-
-                        return FlutterMap(
-                          mapController: mapController,
-                          options: MapOptions(
-                            initialCenter: LatLng(location.latitude, location.longitude),
-                            initialZoom: 11,
-                          ),
-                          children: [
-                            openStreetMapTileLayer,
-                            MarkerLayer(
-                              markers: markerLocations,
-                            ),
-                            if (points.isNotEmpty)
-                              PolylineLayer(
-                                polylines: [
-                                  Polyline(
-                                    points: points,
-                                    color: Colors.red,
-                                    strokeWidth: 5,
-                                  ),
-                                ],
-                              ),
-                            PopupMarkerLayer(
-                              options: PopupMarkerLayerOptions(
-                                popupController: PopupController(),
-                                markers: markerLocations,
-                                popupDisplayOptions: PopupDisplayOptions(
-                                  snap: PopupSnap.markerTop,
-                                  builder: (BuildContext context, Marker marker) => Container(
-                                    color: Colors.white,
-                                    child: Text(
-                                      'Title: $title\n'
-                                      'Crime Type: $crimeType\n'
-                                      'Description: $description\n'
-                                      'Difficulty: $difficulty\n'
-                                      'Length: ${length.toString()} km\n'
-                                      'Transport Type: $transportType\n'
-                                      'Year Occurred: ${DateFormat.yMMMd().format(yearOccurred)}',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            copyrightNotice,
-                          ],
-                        );
-                      },
-                    ),
-                      /**child: FlutterMap(
+                      child: FlutterMap(
                         mapController: mapController,
                         options: const MapOptions(
                           initialCenter: LatLng(-42.8794, 147.3294),
@@ -365,6 +270,55 @@ class _MyAppState extends State<MyApp>{
                                 )
                               ],
                             ),
+
+                          /** 
+                           * Test Marker for data
+                           **/ 
+                          PopupMarkerLayer(
+                            options: PopupMarkerLayerOptions(
+                              popupController: PopupController(),
+                              markers: [
+                                const Marker(
+                                  point: LatLng(-40, 147),
+                                  child: Icon(
+                                    Icons.location_pin,
+                                    size: 40,
+                                    color: Colors.red,
+                                  ))
+                              ],
+                              popupDisplayOptions: PopupDisplayOptions(
+                                snap: PopupSnap.markerTop,
+                                builder: (BuildContext context, Marker marker) => Container(
+                                  color: Colors.white,
+                                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                                    future: fetchWalks(), 
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const CircularProgressIndicator();
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else if (snapshot.hasData) {
+                                        var walks = snapshot.data;
+                                        
+                                        if (walks!.isEmpty) {
+                                          return Center(child: Text('No walks found.'));
+                                        } 
+                                        //debugPrint("$walks");
+
+                                        // walks[0] is the walk at position 1 (aka the only one in the collection) ['Title'] or ['Description'] retrieves the actual data
+                                        return Text('Title: ${walks[0]['Title']}\nDescription: ${walks[0]['Description']}' );
+                                      } else {
+                                        return const Text('No Title Available');
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ))
+                          ),
+                          /** 
+                           * End of test Marker
+                           **/ 
+
                           PopupMarkerLayer(
                               options: PopupMarkerLayerOptions(
                                   popupController: PopupController(),
@@ -387,7 +341,7 @@ class _MyAppState extends State<MyApp>{
                           ),
                           copyrightNotice, // input copyright
                         ],
-                      ),*/
+                      ),
                     ),
                   ],
                 ),
