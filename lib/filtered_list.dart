@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'crime_walk.dart';
 
-extension StringExtension on String {
+extension StringExtension on String? {
   String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+    if (this == null || this!.isEmpty) {
+      return "";
+    }
+    return "${this![0].toUpperCase()}${this!.substring(1).toLowerCase()}";
   }
 }
+
 
 class FilteredList extends StatefulWidget
 {
