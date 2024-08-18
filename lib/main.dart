@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
+import 'package:crimewalksapp/marker_generator.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatefulWidget{
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp>{
+class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
   late MapController mapController; // Controller for map
@@ -127,51 +128,6 @@ class _MyAppState extends State<MyApp>{
 
   @override
   Widget build(BuildContext context) {
-    var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
-
-    // list of locations within the app
-    markerLocations = [
-      Marker(
-        point: const LatLng(-42.90395, 147.325439),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          onTap: () {
-            //TODO: input actual data into function
-            getCoordinates();
-          },
-          child: const Icon(
-            Icons.location_pin,
-            size: 40,
-            color: Colors.red,
-          ),
-        ),
-      ),
-      Marker(
-        point: const LatLng(-42.879601, 147.329874),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          onTap: () {
-            // TODO: open walk information here
-          },
-          child: const Icon(
-            Icons.location_pin,
-            size: 40,
-            color: Colors.red,
-          ),
-        ),
-      ),
-      Marker (
-        point: LatLng(currentLat, currentLong),
-        child: const Icon(
-          Icons.circle,
-          size: 15,
-          color: Colors.blue,
-        )
-      )
-    ];
-
     return ChangeNotifierProvider(
       create: (context) => CrimeWalkModel(),
       child: Scaffold(
@@ -189,9 +145,10 @@ class _MyAppState extends State<MyApp>{
                         ),
                         children: [
                           openStreetMapTileLayer, //input map
-                          MarkerLayer(
-                            markers: markerLocations,
-                          ),
+                          MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
+                          // MarkerLayer(
+                          //   markers: markerLocations,
+                          // ),
                           if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
                               polylineCulling: true,
@@ -207,13 +164,93 @@ class _MyAppState extends State<MyApp>{
                               options: PopupMarkerLayerOptions(
                                   popupController: PopupController(),
                                   markers: [
-                                    const Marker(
-                                        point: LatLng(-40.87936, 147.32941),
-                                        child: Icon(
-                                          Icons.location_pin,
-                                          size: 40,
-                                          color: Colors.red,
-                                        ))
+                                    Marker(
+                                        point: const LatLng(-40.87936, 147.32941),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return IntrinsicHeight(
+                                                  child: Column(
+                                                    children: [
+                                                      Padding(
+                                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
+                                                        child:
+                                                          Container(
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(8.0),
+                                                              color: Colors.white,
+                                                            ),
+                                                            child: Column(
+                                                              children: [
+                                                                Text("Walk to view a crime."),
+                                                                SizedBox(
+                                                                  height: 200,
+                                                                  child: Text("This is a description for the walk.")
+                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                  children: [
+                                                                    Padding(
+                                                                      padding: const EdgeInsets.only(left: 8, right: 4, bottom: 8),
+                                                                      child: ElevatedButton(
+                                                                        style: ElevatedButton.styleFrom(
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(10),
+                                                                          ),
+                                                                        ),
+                                                                        onPressed: () => {},
+                                                                        child: const Text("End Walk")
+                                                                      )
+                                                                    ),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                                      children: [
+                                                                        Padding(
+                                                                          padding: const EdgeInsets.only(left: 8, right: 4, bottom: 8),
+                                                                          child: ElevatedButton(
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              shape: RoundedRectangleBorder(
+                                                                                borderRadius: BorderRadius.circular(10),
+                                                                              ),
+                                                                            ),
+                                                                            onPressed: () => {},
+                                                                            child: const Text("Previous")
+                                                                          )
+                                                                        ),
+                                                                        Padding(
+                                                                            padding: const EdgeInsets.only(left: 4, bottom: 8, right: 8),
+                                                                            child: ElevatedButton(
+                                                                              style: ElevatedButton.styleFrom(
+                                                                                shape: RoundedRectangleBorder(
+                                                                                  borderRadius: BorderRadius.circular(10),
+                                                                                ),
+                                                                              ),
+                                                                              onPressed: () => {},
+                                                                              child: const Text("Next")
+                                                                            )
+                                                                        )
+                                                                      ]
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                      ),
+                                                    ]
+                                                  )
+                                                );
+                                            });
+                                          },
+                                          child: const Icon(
+                                            Icons.location_pin,
+                                            size: 40,
+                                            color: Colors.red,
+                                          ),
+                                        )
+                                    )
                                   ],
                                   popupDisplayOptions: PopupDisplayOptions(
                                     snap: PopupSnap.markerTop,

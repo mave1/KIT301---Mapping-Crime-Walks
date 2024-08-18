@@ -10,6 +10,7 @@ extension StringExtension on String {
   }
 }
 
+// The menu that appears when you click the bottom Search Walks button.
 class FilteredList extends StatefulWidget
 {
   const FilteredList({super.key});
@@ -31,6 +32,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   bool showMenu = false;
   late AnimationController animationController;
 
+  // Generates one of the menu fields from _showWalkSummary.
   Widget _buildSummaryField(String label, String value, bool shouldCapitalize) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,6 +57,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
     );
   }
 
+  // The menu that appears after clicking on a specific menu item.
   void _showWalkSummary(BuildContext context, CrimeWalk walk) {
     showModalBottomSheet(
         context: context,
@@ -130,25 +133,24 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
     return Consumer<CrimeWalkModel>(builder: createMenu);
   }
 
-  // always visible? toggle actual menu when clicked. i.e. button + margin (8px?) + menu
+  // The button at the bottom of the screen that shows the walks when clicked.
   Widget createButton()
   {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            // minimumSize: const Size(0, 50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
           ),
           child: const Text("Search Walks"),
           onPressed: () => animateMenuState()
-            // ANIMATE A NEW SCREEN INTO OPENING https://drive.google.com/file/d/1aLuebSfOxLSHfNO9XQEEtzAB-jmhArzx/view PAGE 5 (createMenu())
       ),
     );
   }
 
+  // The menu that appears when you click on the Search Walks/createButton button.
   Widget createMenu(BuildContext context, CrimeWalkModel model, _)
   {
     return IntrinsicHeight(
@@ -156,6 +158,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            // Controls the animation transition.
             child: SlideTransition(
               position: Tween<Offset>(
                 begin: const Offset(0, 2),
@@ -168,57 +171,34 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
-                  color: Colors.white,
+                  color: Colors.white, // The colour of the menu TODO: needs improvements.
                 ),
                 child: Column(
                   children: [
+                    // Title
                     const Padding(
                       padding: EdgeInsets.only(bottom: 8),
                       child: Center(child: Text("Crime Walks Tasmania")),
                     ),// TODO: translation string? https://pub.dev/packages/i18n_extension ?
+                    // Filtering options
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Row(
-                              //   children: [
-                              //     const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("Year Range:")),
-                              //     SizedBox( // TODO: EXPANDED
-                              //       width: 60,
-                              //       child: TextField(
-                              //         controller: startYearController,
-                              //         keyboardType: TextInputType.number,
-                              //         decoration: const InputDecoration(
-                              //           border: OutlineInputBorder(),
-                              //           labelText: 'Start Year',
-                              //         ),
-                              //       ),
-                              //     ),
-                              //     SizedBox( // TODO: EXPANDED
-                              //       width: 60,
-                              //       child: TextField(
-                              //         controller: endYearController,
-                              //         keyboardType: TextInputType.number,
-                              //         decoration: const InputDecoration(
-                              //           border: OutlineInputBorder(),
-                              //           labelText: 'End Year',
-                              //         ),
-                              //       ),
-                              //     ),
-                              //   ],
-                              // ),
                               FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
                               FilterableFlag(key: lengthKey, values: Length.values),
                               FilterableFlag(key: locationKey, values: Location.values),
                               FilterableFlag(key: difficultyKey, values: Difficulty.values),
                               FilterableFlag(key: transportTypeKey, values: TransportType.values),
+                              // Apply filter and clear filtering buttons.
                               Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Flexible(
                                         child: Padding(
-                                        padding: const EdgeInsets.only(left: 8, right: 4),
+                                        padding: const EdgeInsets.only(left: 8, right: 4, bottom: 8),
                                         child: ElevatedButton(
                                             style: ElevatedButton.styleFrom(
                                               shape: RoundedRectangleBorder(
@@ -239,7 +219,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                     ),
                                     Flexible(
                                         child: Padding(
-                                        padding: const EdgeInsets.only(left: 4),
+                                        padding: const EdgeInsets.only(left: 4, bottom: 8),
                                         child: ElevatedButton(
                                             style: ElevatedButton.styleFrom(
                                               shape: RoundedRectangleBorder(
@@ -255,24 +235,27 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                               ),
                             ]
                         ),
+                        // Currently filtered walks.
                         Expanded(child: Container(
+                            // This is just supposed to be a decently sized box to show the filtered walks. Might need tuning.
                             height: MediaQuery.of(context).size.height / 2.5,
-                            child: ListView.builder(itemBuilder: (context, index)
-                            {
-                              var walk = model.filteredWalks[index];
+                            child: ListView.builder(
+                              itemBuilder: (context, index)
+                              {
+                                var walk = model.filteredWalks[index];
 
-                              return ListTile(
-                                title: Text(walk.name),
-                                subtitle: Text(walk.description),
-                                leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car),
-                                onTap: () => {
-                                  _showWalkSummary(context, walk)
-                                }
-                              );
-                            },
-                                itemCount: model.filteredWalks.length
+                                return ListTile(
+                                  title: Text(walk.name),
+                                  subtitle: Text(walk.description),
+                                  leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car),
+                                  onTap: () => {
+                                    _showWalkSummary(context, walk)
+                                  }
+                                );
+                              },
+                              itemCount: model.filteredWalks.length
                             )
-                        ),
+                          ),
                         ),
                       ],
                     ),
@@ -323,6 +306,7 @@ class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
     return Row(
         children: [
           Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text("${fancyEnumName(state)}:")),
+          // Creates a dropdown menu of all the enum values but capitialised. Removes the enum prefix.
           DropdownButton(
             value: state,
             items: widget.values.map((T value) {
