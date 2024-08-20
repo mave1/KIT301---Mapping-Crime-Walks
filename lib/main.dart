@@ -74,7 +74,7 @@ class _MyAppState extends State<MyApp>{
   
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates(var lat1, var long1, var lat2, var long2) async {
+  getCoordinates(String lat1, String long1, String lat2, String long2) async {
     String comma = ", ";
     String point1 = long1 + comma + lat1;
     String point2 = long2 + comma + lat2;
@@ -189,7 +189,7 @@ class _MyAppState extends State<MyApp>{
         child: GestureDetector(
           onTap: () {
             //TODO: input actual data into function
-            getCoordinates(-42.90395, 147.325439, -42.91, 147.32);
+            getCoordinates("-42.90395", "147.325439", "-42.91", "147.32");
           },
           child: const Icon(
             Icons.location_pin,
