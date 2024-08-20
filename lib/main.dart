@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -13,8 +17,17 @@ import 'package:provider/provider.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart'; // for formatting the date
 
-void main() {
+Future<void> main() async {
+  try {
+    //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e){
+    debugPrint('Failed to initalizeApp');
+  }
+
   runApp(const MaterialApp(
     home: MyApp(),
     ));
@@ -31,19 +44,43 @@ class _MyAppState extends State<MyApp>{
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
   late MapController mapController; // Controller for map
-  late double currentLat = 0.0; //User's current location - latitude
-  late double currentLong = 0.0;  //User's current location - Longitude
-  Position? _position; //Position object to store user's current location
+  late double currentLat = 0.0;
+  late double currentLong = 0.0;
+  Position? _position;
 
+  // Retrieves the instance of the database into a variable, allowing further manipulation
+  final db = FirebaseFirestore.instance;
+
+  // Function that retrieves data from the database, puts it into a lits and then returns it
+  Future<List<Map<String, dynamic>>> fetchWalks() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db.collection("Walks").get();
+
+      List<Map<String, dynamic>> walks = [];
+
+      for (var docSnapshot in querySnapshot.docs) {
+        walks.add(docSnapshot.data());  // Collect each document's data into the list
+      }
+
+      debugPrint("Successfully fetched ${walks.length} walks.");
+      return walks;
+    } catch (e) {
+      debugPrint("Error fetching walks: $e");
+      return []; // Return an empty list on error
+    }
+  }
+  
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates() async {
+  getCoordinates(var latlngOne, var latlngTwo, var latlngThree, var latlngfour) async {
     //temporary entry to test code
-    var responce = await http.get(getRouteUrl("147.325439, -42.90395", "147.329874, -42.879601"));
+    var response = await http.get(getRouteUrl("$latlngTwo, $latlngOne", "$latlngfour, $latlngThree"));
+
+    //actual route will take start and end point, and then fill in route according to how many markers "Stops" there are
 
     setState(() {
-      if(responce.statusCode == 200){
-        var data = jsonDecode(responce.body);
+      if(response.statusCode == 200){
+        var data = jsonDecode(response.body);
         listOfPoints = data['features'][0]['geometry']['coordinates'];
         points = listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList();
         focusOnRoute(points); // Auto-focus on the route after data is loaded
@@ -128,14 +165,15 @@ class _MyAppState extends State<MyApp>{
       double minLon = routePoints.map((p) => p.longitude).reduce(min);
       double maxLon = routePoints.map((p) => p.longitude).reduce(max);
       LatLngBounds bounds = LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon));
-      mapController.fitBounds(bounds, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+      //mapController.fitCamera(CameraFit.bounds(bounds: bounds), padding: EdgeInsets.all(50.0));
+      mapController.fitCamera(CameraFit.bounds(bounds: bounds)); 
     }
   }
 
   @override
   Widget build(BuildContext context) {
     var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
-
+    
     // list of locations within the app
     markerLocations = [
       Marker(
@@ -145,7 +183,7 @@ class _MyAppState extends State<MyApp>{
         child: GestureDetector(
           onTap: () {
             //TODO: input actual data into function
-            getCoordinates();
+            getCoordinates(-42.90395, 147.325439, -42.91, 147.32);
           },
           child: const Icon(
             Icons.location_pin,
@@ -154,6 +192,36 @@ class _MyAppState extends State<MyApp>{
           ),
         ),
       ),
+      //Extra sub markers until actual child markers are added
+      Marker(
+        point: const LatLng(-42.91, 147.32),
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () {
+            //TODO: input actual data into function
+            //getCoordinates();
+          },
+          child: const Icon(
+            Icons.location_pin,
+            size: 40,
+            color: Colors.red,
+          ),
+        ),
+      ),
+      Marker(
+        point: const LatLng(-42.92, 147.31),
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          child: const Icon(
+            Icons.location_pin,
+            size: 40,
+            color: Colors.red,
+          ),
+        ),
+      ),
+
       Marker(
         point: const LatLng(-42.879601, 147.329874),
         width: 40,
@@ -202,7 +270,6 @@ class _MyAppState extends State<MyApp>{
                           ),
                           if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
-                              polylineCulling: true,
                               polylines: [
                                 Polyline(
                                     points: points,

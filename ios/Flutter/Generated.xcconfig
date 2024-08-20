@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=C:\dev\flutter
-FLUTTER_APPLICATION_PATH=C:\Users\charl\AndroidStudioProjects\KIT301---Mapping-Crime-Walks
+FLUTTER_ROOT=C:\Users\Rowan\flutter
+FLUTTER_APPLICATION_PATH=C:\Users\Rowan\Documents\Uni stuff\KIT301 Project\KIT301---Mapping-Crime-Walks
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build

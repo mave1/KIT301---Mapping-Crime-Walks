@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "crime-walks",
+          "appId": "1:928361817319:android:670937d41b41ca347cee42",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "crime-walks",
+          "configurations": {
+            "android": "1:928361817319:android:670937d41b41ca347cee42",
+            "ios": "1:928361817319:ios:42fbeea2be4344ac7cee42"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
