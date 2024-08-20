@@ -44,9 +44,11 @@ class _MyAppState extends State<MyApp>{
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
   late MapController mapController; // Controller for map
-  late double currentLat = 0.0;
-  late double currentLong = 0.0;
-  Position? _position;
+  late double currentLat = 0.0; //User's current location - latitude
+  late double currentLong = 0.0;  //User's current location - Longitude
+  String currentLatString = ""; //User's current location in string form - latitude
+  String currentLongString = ""; //User's current location in string form - Longitude
+  Position? _position; //Position object to store user's current location
 
   // Retrieves the instance of the database into a variable, allowing further manipulation
   final db = FirebaseFirestore.instance;
@@ -72,11 +74,12 @@ class _MyAppState extends State<MyApp>{
   
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates(var latlngOne, var latlngTwo, var latlngThree, var latlngfour) async {
-    //temporary entry to test code
-    var response = await http.get(getRouteUrl("$latlngTwo, $latlngOne", "$latlngfour, $latlngThree"));
+  getCoordinates(var lat1, var long1, var lat2, var long2) async {
+    String comma = ", ";
+    String point1 = long1 + comma + lat1;
+    String point2 = long2 + comma + lat2;
 
-    //actual route will take start and end point, and then fill in route according to how many markers "Stops" there are
+    var response = await http.get(getRouteUrl(point1, point2));
 
     setState(() {
       if(response.statusCode == 200){
@@ -88,6 +91,7 @@ class _MyAppState extends State<MyApp>{
     });
   }
 
+
   //function to retrieve the user's current location
   void _getCurrentLocation() async {
     Position position = await _determinePosition(); //gather the user's current location
@@ -98,6 +102,8 @@ class _MyAppState extends State<MyApp>{
 
       currentLat = _position!.latitude; //user's current latitude
       currentLong = _position!.longitude; //user's current longitude
+      currentLatString = currentLat.toString();
+      currentLongString = currentLong.toString();
     });
 
   }
@@ -229,6 +235,7 @@ class _MyAppState extends State<MyApp>{
         child: GestureDetector(
           onTap: () {
             // TODO: open walk information here
+            getCoordinates("-42.90395", "147.325439", "-42.879601", "147.329874");
           },
           child: const Icon(
             Icons.location_pin,
@@ -240,10 +247,15 @@ class _MyAppState extends State<MyApp>{
       //Marker for the user's current location
       Marker (
         point: LatLng(currentLat, currentLong),
-        child: const Icon(
-          Icons.circle,
-          size: 15,
-          color: Colors.blue,
+        child: GestureDetector( 
+          onTap: () {
+          getCoordinates(currentLatString, currentLongString, "-42.879601", "147.329874");
+          },
+          child: const Icon(
+            Icons.circle,
+            size: 15,
+            color: Colors.blue,
+        )
         )
       )
     ];
