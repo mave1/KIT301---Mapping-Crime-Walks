@@ -270,55 +270,6 @@ class _MyAppState extends State<MyApp>{
                                 )
                               ],
                             ),
-
-                          /** 
-                           * Test Marker for data
-                           **/ 
-                          PopupMarkerLayer(
-                            options: PopupMarkerLayerOptions(
-                              popupController: PopupController(),
-                              markers: [
-                                const Marker(
-                                  point: LatLng(-40, 147),
-                                  child: Icon(
-                                    Icons.location_pin,
-                                    size: 40,
-                                    color: Colors.red,
-                                  ))
-                              ],
-                              popupDisplayOptions: PopupDisplayOptions(
-                                snap: PopupSnap.markerTop,
-                                builder: (BuildContext context, Marker marker) => Container(
-                                  color: Colors.white,
-                                  child: FutureBuilder<List<Map<String, dynamic>>>(
-                                    future: fetchWalks(), 
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return const CircularProgressIndicator();
-                                      } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
-                                      } else if (snapshot.hasData) {
-                                        var walks = snapshot.data;
-                                        
-                                        if (walks!.isEmpty) {
-                                          return Center(child: Text('No walks found.'));
-                                        } 
-                                        //debugPrint("$walks");
-
-                                        // walks[0] is the walk at position 1 (aka the only one in the collection) ['Title'] or ['Description'] retrieves the actual data
-                                        return Text('Title: ${walks[0]['Title']}\nDescription: ${walks[0]['Description']}' );
-                                      } else {
-                                        return const Text('No Title Available');
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ))
-                          ),
-                          /** 
-                           * End of test Marker
-                           **/ 
-
                           PopupMarkerLayer(
                               options: PopupMarkerLayerOptions(
                                   popupController: PopupController(),
