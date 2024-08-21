@@ -5,6 +5,8 @@ import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
 import 'package:crimewalksapp/marker_generator.dart';
+import 'package:crimewalksapp/user_settings.dart';
+import 'package:crimewalksapp/walk_info.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -276,6 +278,16 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ),
               ),
             ]
+        ),
+        floatingActionButton: Consumer<CrimeWalkModel>(
+          builder: (context, model, _) {
+            return model.userSettings.currentWalk != null ? FloatingActionButton(
+              onPressed: () {
+                showWalkSummary(context, model, model.userSettings.currentWalk!);
+              },
+              child: const Icon(Icons.directions_walk),
+            ) : const SizedBox.shrink();
+          },
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:crimewalksapp/walk_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -31,75 +32,6 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   bool animateMenu = false;
   bool showMenu = false;
   late AnimationController animationController;
-
-  // Generates one of the menu fields from _showWalkSummary.
-  Widget _buildSummaryField(String label, String value, bool shouldCapitalize) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 10.0),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 5.0),
-        Text(
-          shouldCapitalize ? value.capitalize() : value,
-          style: const TextStyle(
-            fontSize: 14.0,
-          ),
-        ),
-        const Divider(), // Add a divider between fields
-      ],
-    );
-  }
-
-  // The menu that appears after clicking on a specific menu item.
-  void _showWalkSummary(BuildContext context, CrimeWalk walk) {
-    showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Walk Summary',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10.0,),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: FilledButton(onPressed: () => print("Walk started"), child: const Text('Start Walk')),
-                        ),
-                      ]
-                  ),
-                  const Divider(), // Add a divider between fields
-                  _buildSummaryField('Name', walk.name.toString(), false),
-                  _buildSummaryField('Description', walk.description.toString(), false),
-                  _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Physical Requirements', 'TODO', true),
-                  _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
-                ],
-              ),
-            ),
-          );
-        }
-    );
-  }
 
   @override
   void initState()
@@ -249,7 +181,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                   subtitle: Text(walk.description),
                                   leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car),
                                   onTap: () => {
-                                    _showWalkSummary(context, walk)
+                                    showWalkSummary(context, model, walk)
                                   }
                                 );
                               },
