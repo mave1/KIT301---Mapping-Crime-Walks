@@ -44,7 +44,7 @@ class _MarkerGeneratorState extends State<MarkerGenerator>
         point: LatLng(widget.latitude, widget.longitude),
         child: const Icon(
           Icons.circle,
-          size: 15,
+          size: 5000,
           color: Colors.blue
         )
       )

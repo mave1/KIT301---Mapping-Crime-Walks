@@ -63,7 +63,9 @@ class CrimeWalk
 
     for (var location in locations)
     {
-      markers.add(location.createPOI(context, model, this, filtered));
+      var marker = location.createPOI(context, model, this, filtered);
+
+      if (marker != null) markers.add(marker);
     }
 
     return markers;
@@ -156,9 +158,11 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
     } : null;
   }
 
-  Marker createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
+  Marker? createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
   {
-    return Marker(
+    CrimeWalk? currentWalk = model.userSettings.currentWalk;
+
+    return currentWalk == null || currentWalk == walk ? Marker(
       point: LatLng(latitude, longitude),
       width: 40,
       height: 40,
@@ -172,7 +176,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
           color: filtered ? Colors.grey : color,
         ),
       ),
-    );
+    ) : null;
   }
 }
 
@@ -232,9 +236,7 @@ class CrimeWalkModel extends ChangeNotifier
 
     for (var element in crimeWalks)
     {
-      bool showHidden = !filteredWalks.contains(element) || userSettings.currentWalk != null && userSettings.currentWalk! != element;
-
-      markers.addAll(element.buildJourney(context, this, showHidden));
+      markers.addAll(element.buildJourney(context, this, !filteredWalks.contains(element)));
     }
   }
 
