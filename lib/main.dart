@@ -54,7 +54,7 @@ class _MyAppState extends State<MyApp>{
   final db = FirebaseFirestore.instance;
 
   // Function that retrieves data from the database, puts it into a lits and then returns it
-  Future<List<Map<String, dynamic>>> fetchWalks() async {
+  /**Future<List<Map<String, dynamic>>> fetchWalks() async {
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await db.collection("Walks").get();
 
@@ -69,6 +69,47 @@ class _MyAppState extends State<MyApp>{
     } catch (e) {
       debugPrint("Error fetching walks: $e");
       return []; // Return an empty list on error
+    }
+  }*/
+
+  Future<void> fetchPointsOfInterestFromAllWalks() async {
+    // First, get all documents in the "Walks" collection
+    QuerySnapshot walksSnapshot = await db.collection('Walks').get();
+
+    // Loop through each walk document
+    for (var walkDoc in walksSnapshot.docs) {
+      String walkDocumentId = walkDoc.id; // Get the auto-generated document ID
+
+      // Reference to the "Points of Interest" sub-collection for this walk document
+      CollectionReference pointsOfInterestRef = FirebaseFirestore.instance
+          .collection('Walks')
+          .doc(walkDocumentId)
+          .collection('Points of Interest');
+
+      // Get all documents from the "Points of Interest" sub-collection
+      QuerySnapshot pointsSnapshot = await pointsOfInterestRef.get();
+
+      // Print data for each point of interest
+      for (var pointDoc in pointsSnapshot.docs) {
+        Map<String, dynamic> data = pointDoc.data() as Map<String, dynamic>;
+        String poiId = pointDoc.id;
+
+        // Check if the location field is present and is a GeoPoint
+        if (data['Location'] != null && data['Location'] is GeoPoint) {
+          GeoPoint location = data['Location'];
+          double latitude = location.latitude;
+          double longitude = location.longitude;
+
+          debugPrint('Walk Document ID: $walkDocumentId');
+          debugPrint('POI ID: $poiId');
+          debugPrint('Information: ${data['Information']}');
+          debugPrint('Latitude: $latitude');
+          debugPrint('Longitude: $longitude');
+        } else {
+          debugPrint('Location data is missing or invalid for POI ID: $poiId');
+        }
+        debugPrint('---');
+      }
     }
   }
   
@@ -179,7 +220,10 @@ class _MyAppState extends State<MyApp>{
   @override
   Widget build(BuildContext context) {
     var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
-    
+
+    //testing that function works
+    fetchPointsOfInterestFromAllWalks();
+
     // list of locations within the app
     markerLocations = [
       Marker(
