@@ -8,10 +8,13 @@ import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:crimewalksapp/marker_generator.dart';
+import 'package:crimewalksapp/user_settings.dart';
+import 'package:crimewalksapp/walk_info.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_map/flutter_map.dart'; 
+import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
@@ -40,7 +43,7 @@ class MyApp extends StatefulWidget{
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp>{
+class _MyAppState extends State<MyApp> {
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
   late MapController mapController; // Controller for map
@@ -112,7 +115,7 @@ class _MyAppState extends State<MyApp>{
       }
     }
   }
-  
+
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
   getCoordinates(String lat1, String long1, String lat2, String long2) async {
@@ -183,7 +186,7 @@ class _MyAppState extends State<MyApp>{
       return current;
   }
 
-  //instatciate the user's location with high accuracy 
+  //instantiate the user's location with high accuracy
   void initLocation() {
     const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
@@ -200,7 +203,7 @@ class _MyAppState extends State<MyApp>{
   @override
   void initState() {
     _getCurrentLocation(); //collect the user's current location
-    initLocation(); 
+    initLocation();
     mapController = MapController();
     super.initState();
   }
@@ -213,7 +216,7 @@ class _MyAppState extends State<MyApp>{
       double maxLon = routePoints.map((p) => p.longitude).reduce(max);
       LatLngBounds bounds = LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon));
       //mapController.fitCamera(CameraFit.bounds(bounds: bounds), padding: EdgeInsets.all(50.0));
-      mapController.fitCamera(CameraFit.bounds(bounds: bounds)); 
+      mapController.fitCamera(CameraFit.bounds(bounds: bounds));
     }
   }
 
@@ -291,7 +294,7 @@ class _MyAppState extends State<MyApp>{
       //Marker for the user's current location
       Marker (
         point: LatLng(currentLat, currentLong),
-        child: GestureDetector( 
+        child: GestureDetector(
           onTap: () {
           getCoordinates(currentLatString, currentLongString, "-42.879601", "147.329874");
           },
@@ -321,9 +324,10 @@ class _MyAppState extends State<MyApp>{
                         ),
                         children: [
                           openStreetMapTileLayer, //input map
-                          MarkerLayer(
-                            markers: markerLocations,
-                          ),
+                          MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
+                          // MarkerLayer(
+                          //   markers: markerLocations,
+                          // ),
                           if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
                               polylines: [
@@ -334,27 +338,7 @@ class _MyAppState extends State<MyApp>{
                                 )
                               ],
                             ),
-                          PopupMarkerLayer(
-                              options: PopupMarkerLayerOptions(
-                                  popupController: PopupController(),
-                                  markers: [
-                                    const Marker(
-                                        point: LatLng(-40.87936, 147.32941),
-                                        child: Icon(
-                                          Icons.location_pin,
-                                          size: 40,
-                                          color: Colors.red,
-                                        ))
-                                  ],
                                   //popup test marker
-                                  popupDisplayOptions: PopupDisplayOptions(
-                                    snap: PopupSnap.markerTop,
-                                    builder: (BuildContext context, Marker marker) => Container(
-                                      color: Colors.white,
-                                      child: Text(informationPopup(marker)),
-                                    ),
-                                  ))
-                          ),
                           copyrightNotice, // input copyright
                         ],
                       ),
@@ -371,6 +355,16 @@ class _MyAppState extends State<MyApp>{
                 ),
               ),
             ]
+        ),
+        floatingActionButton: Consumer<CrimeWalkModel>(
+          builder: (context, model, _) {
+            return model.userSettings.currentWalk != null ? FloatingActionButton(
+              onPressed: () {
+                showWalkSummary(context, model, model.userSettings.currentWalk!);
+              },
+              child: const Icon(Icons.directions_walk),
+            ) : const SizedBox.shrink();
+          },
         ),
       ),
     );

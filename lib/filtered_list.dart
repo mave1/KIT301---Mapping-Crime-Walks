@@ -1,3 +1,5 @@
+import 'package:crimewalksapp/walk_info.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'crime_walk.dart';
@@ -11,18 +13,21 @@ extension StringExtension on String? {
   }
 }
 
-class FilteredList extends StatefulWidget {
+// The menu that appears when you click the bottom Search Walks button.
+class FilteredList extends StatefulWidget
+{
   const FilteredList({super.key});
 
   @override
   _FilteredListState createState() => _FilteredListState();
 }
 
-class _FilteredListState extends State<FilteredList> with SingleTickerProviderStateMixin {
+class _FilteredListState extends State<FilteredList> with SingleTickerProviderStateMixin
+{
   final startYearController = TextEditingController();
   final endYearController = TextEditingController();
   final crimeTypeKey = GlobalKey<_FilterableFlagState<CrimeType>>();
-  final lengthKey = GlobalKey<_FilterableFlagState<Length>>();
+  // final lengthKey = GlobalKey<double>(); // TODO: Fix
   final locationKey = GlobalKey<_FilterableFlagState<Location>>();
   final difficultyKey = GlobalKey<_FilterableFlagState<Difficulty>>();
   final transportTypeKey = GlobalKey<_FilterableFlagState<TransportType>>();
@@ -54,60 +59,6 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
       ],
     );
   }
-
-
-  // Method to show walk summary that is shown once a walk has been selected from the filtered list
-  void _showWalkSummary(BuildContext context, CrimeWalk walk) {
-    showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Walk Summary',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10.0,),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: FilledButton(
-                              onPressed: () {
-                                setState(() {
-                                  onWalk = true; // Update the onWalk variable
-                                });
-                                print("Walk started");
-                              },
-                              child: const Text('Start Walk')
-                          ),
-                        ),
-                      ]
-                  ),
-                  const Divider(), // Add a divider between fields
-                  _buildSummaryField('Name', walk.name.toString(), false),
-                  _buildSummaryField('Description', walk.description.toString(), false),
-                  _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Physical Requirements', 'TODO', true),
-                  _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
-                ],
-              ),
-            ),
-          );
-        }
-    );
-  }
-
 
   // Method to show statistics from current walk the user is on, button is only shown if user is currently on a walk
   void _showWalkStats(BuildContext context, CrimeWalk walk) {
@@ -157,7 +108,8 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   }
 
   @override
-  void initState() {
+  void initState()
+  {
     super.initState();
 
     startYearController.text = "0";
@@ -171,7 +123,8 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
     });
   }
 
-  void animateMenuState() {
+  void animateMenuState()
+  {
     setState(() {
       if (!showMenu) showMenu = true;
 
@@ -186,142 +139,154 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context)
+  {
     return Consumer<CrimeWalkModel>(builder: createMenu);
   }
 
-  Widget createButton() {
+  // The button at the bottom of the screen that shows the walks when clicked.
+  Widget createButton()
+  {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-        ),
-        child: const Text("Search Walks"),
-        onPressed: () => animateMenuState()
+          child: const Text("Search Walks"),
+          onPressed: () => animateMenuState()
       ),
     );
   }
 
-  Widget createMenu(BuildContext context, CrimeWalkModel model, _) {
+  // The menu that appears when you click on the Search Walks/createButton button.
+  Widget createMenu(BuildContext context, CrimeWalkModel model, _)
+  {
     return Stack(
-      children: [
-        IntrinsicHeight(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 2),
-                    end: const Offset(0, 0),
-                  ).animate(CurvedAnimation(
-                    parent: animationController,
-                    curve: Curves.easeInOut,
-                  )),
-                  child: showMenu
-                      ? Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: Colors.white,
-                    ),
-                    child: Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 8),
-                          child: Center(child: Text("Crime Walks Tasmania")),
-                        ),
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
-                                FilterableFlag(key: lengthKey, values: Length.values),
-                                FilterableFlag(key: locationKey, values: Location.values),
-                                FilterableFlag(key: difficultyKey, values: Difficulty.values),
-                                FilterableFlag(key: transportTypeKey, values: TransportType.values),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
+        children: [
+          IntrinsicHeight(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  // Controls the animation transition.
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 2),
+                      end: const Offset(0, 0),
+                    ).animate(CurvedAnimation(
+                      parent: animationController,
+                      curve: Curves.easeInOut,
+                    )),
+                    child: showMenu ?
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.white, // The colour of the menu
+                      ),
+                      child: Column(
+                        children: [
+                          // Title
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Center(child: Text("Crime Walks Tasmania")),
+                          ),
+                          // Filtering options
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Flexible(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 8, right: 4),
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(10),
+                                    FilterableFlag(key: crimeTypeKey, values: CrimeType.values),
+                                    // FilterableFlag(key: lengthKey, values: Length.values), // TODO: FIX UP WITH DOUBLE SLIDER
+                                    FilterableFlag(key: locationKey, values: Location.values),
+                                    FilterableFlag(key: difficultyKey, values: Difficulty.values),
+                                    FilterableFlag(key: transportTypeKey, values: TransportType.values),
+                                    // Apply filter and clear filtering buttons.
+                                    Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Flexible(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(left: 8, right: 4, bottom: 8),
+                                              child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                    ),
+                                                  ),
+                                                  onPressed: () => model.filterWalks(
+                                                      int.parse(startYearController.value.text),
+                                                      int.parse(endYearController.value.text),
+                                                      crimeTypeKey.currentState!.state,
+                                                      0.0,
+                                                      // lengthKey.currentState!.state, //TODO:
+                                                      locationKey.currentState!.state,
+                                                      difficultyKey.currentState!.state,
+                                                      transportTypeKey.currentState!.state),
+                                                  child: const Text("Search")
                                               ),
                                             ),
-                                            onPressed: () => model.filterWalks(
-                                                int.parse(startYearController.value.text),
-                                                int.parse(endYearController.value.text),
-                                                crimeTypeKey.currentState!.state,
-                                                lengthKey.currentState!.state,
-                                                locationKey.currentState!.state,
-                                                difficultyKey.currentState!.state,
-                                                transportTypeKey.currentState!.state),
-                                            child: const Text("Search")
-                                        ),
-                                      ),
+                                          ),
+                                          Flexible(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(left: 4, bottom: 8),
+                                              child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                    ),
+                                                  ),
+                                                  onPressed: () => model.resetFilter(),
+                                                  child: const Text("Clear")
+                                              ),
+                                            ),
+                                          )
+                                        ]
                                     ),
-                                    Flexible(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 4),
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                            onPressed: () => model.resetFilter(),
-                                            child: const Text("Clear")
-                                        ),
-                                      ),
-                                    )
                                   ]
                               ),
-                            ]
-                        ),
-                        Expanded(child: SizedBox(
-                            height: MediaQuery.of(context).size.height / 2.5,
-                            child: ListView.builder(itemBuilder: (context, index)
-                            {
-                              var walk = model.filteredWalks[index];
+                              // Currently filtered walks.
+                              Expanded(child: SizedBox(
+                                  // This is just supposed to be a decently sized box to show the filtered walks. Might need tuning.
+                                  height: MediaQuery.of(context).size.height / 2.5,
+                                  child: ListView.builder(itemBuilder: (context, index)
+                                  {
+                                    var walk = model.filteredWalks[index];
 
-                                  return ListTile(
-                                    title: Text(walk.name),
-                                    subtitle: Text(walk.description),
-                                    leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car),
-                                    onTap: () => {
-                                      _showWalkSummary(context, walk)
-                                    },
-                                  );
-                                },
-                                    itemCount: model.filteredWalks.length
+                                    return ListTile(
+                                      title: Text(walk.name),
+                                      subtitle: Text(walk.description),
+                                      leading: walk.transportType == TransportType.WALK ? const Icon(Icons.directions_walk) : const Icon(Icons.directions_car),
+                                      onTap: () => {
+                                        showWalkSummary(context, model, walk)
+                                      },
+                                    );
+                                  },
+                                      itemCount: model.filteredWalks.length
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
-                      : const SizedBox(),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ) : const SizedBox(),
+                  ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  createButton()
-                ],
-              ),
-            ],
-          ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    createButton()
+                  ],
+                ),
+              ],
+            ),
         ),
-        if (onWalk) // Conditionally render the "walk stats" button
+        if (model.userSettings.currentWalk != null) // Conditionally render the "walk stats" button
           Positioned(
             bottom: 10,
             left: 10,
@@ -338,7 +303,8 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   }
 }
 
-class FilterableFlag<T extends Enum> extends StatefulWidget {
+class FilterableFlag<T extends Enum> extends StatefulWidget
+{
   const FilterableFlag({super.key, required this.values});
 
   final List<T> values;
@@ -347,12 +313,14 @@ class FilterableFlag<T extends Enum> extends StatefulWidget {
   State<StatefulWidget> createState() => _FilterableFlagState<T>();
 }
 
-class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>> {
+class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
+{
   late T state;
   late List<T> enumValues;
 
   @override
-  void initState() {
+  void initState()
+  {
     super.initState();
     state = widget.values.first;
   }
@@ -362,6 +330,7 @@ class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>> {
     return Row(
       children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text("${fancyEnumName(state)}:")),
+        // Creates a dropdown menu of all the enum values but capitialised. Removes the enum prefix.
         DropdownButton(
           value: state,
           items: widget.values.map((T value) {
