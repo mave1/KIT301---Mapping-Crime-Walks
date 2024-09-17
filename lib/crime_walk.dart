@@ -126,6 +126,7 @@ class CrimeWalk {
     required this.location,
     required this.difficulty,
     required this.transportType,
+    required this.locations
   });
 
   String name;
@@ -136,20 +137,20 @@ class CrimeWalk {
   Location location;
   Difficulty difficulty;
   TransportType transportType;
-  final locations = LinkedList<CrimeWalkLocation>();
+  LinkedList<CrimeWalkLocation> locations;
 
 
   // Get snapshot of data from the firebase, put it in the data variable to be able to access
 
-  factory CrimeWalk.fromFirestore(DocumentSnapshot doc) {
-  Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  
-  // Gets each variable in the database and maps it to a CrimeWalk
+  factory CrimeWalk.fromFirestore(DocumentSnapshot doc, LinkedList<CrimeWalkLocation> locations) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-  return CrimeWalk(
-    name: data['Title'] ?? '',
-    description: data['Description'] ?? '',
-    yearOccurred: data['YearOccurred'] ?? 0,
+    // Gets each variable in the database and maps it to a CrimeWalk
+
+    return CrimeWalk(
+      name: data['Title'] ?? '',
+      description: data['Description'] ?? '',
+      yearOccurred: data['YearOccurred'] ?? 0,
 
       //This maps the string variable found in the database to the enums we have set for each category
       //At the moment the string variable has to be exact and correct case to match properly
@@ -162,7 +163,7 @@ class CrimeWalk {
       )
           : CrimeType.ALL,
 
-      length: 0.0,
+      length: data['Length'] != null ? data['Length'].toDouble() : 0.0,
       // length: data['Length'] != null
       //     ? Length.values.firstWhere(
       //         (e) => e.toString().split('.').last == data['Length'],
@@ -190,6 +191,8 @@ class CrimeWalk {
           orElse: () => TransportType.ALL // Default value if no match is found
       )
           : TransportType.ALL,
+
+      locations: locations
     );
   }
 
@@ -323,11 +326,59 @@ class CrimeWalkModel extends ChangeNotifier
   final List<CrimeWalk> crimeWalks = [];
   final List<CrimeWalk> filteredWalks = [];
   final List<Marker> markers = [];
+  final List<Color> possibleColors = [Colors.red, Colors.orange, Colors.green, Colors.deepPurple, Colors.blue, Colors.pinkAccent, Colors.yellow];
+  int colorIndex = 0;
 
   UserSettings userSettings = UserSettings();
 
   CrimeWalkModel() {
     fetchCrimeWalks();
+  }
+
+  // Function Currently loops through walks, retrieves Points of Interest, then for each POI in a walk debugPrints to test that output is correct.
+  // Called at the start of build() to test.
+  Future<LinkedList<CrimeWalkLocation>> fetchPointsOfInterestFromWalk(var walkDoc) async {
+    var locations = LinkedList<CrimeWalkLocation>();
+    String walkDocumentId = walkDoc.id; // Get the auto-generated document ID
+
+    // Reference to the "Points of Interest" sub-collection for this walk document
+    CollectionReference pointsOfInterestRef = FirebaseFirestore.instance
+        .collection('Walks')
+        .doc(walkDocumentId)
+        .collection('Points of Interest');
+
+    // Get all documents from the "Points of Interest" sub-collection
+    QuerySnapshot pointsSnapshot = await pointsOfInterestRef.get();
+
+    // Print data for each point of interest
+    for (var pointDoc in pointsSnapshot.docs) {
+      Map<String, dynamic> data = pointDoc.data() as Map<String, dynamic>;
+      String poiId = pointDoc.id;
+
+      // Check if the location field is present and is a GeoPoint
+      if (data['Location'] != null && data['Location'] is GeoPoint) {
+        // Splitting GeoPoint into two variables for lat & long
+        GeoPoint location = data['Location'];
+        double latitude = location.latitude;
+        double longitude = location.longitude;
+
+        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length]));
+
+        // document ID's only being printed for testing purposes, most likely not necessary for actual markers.
+        debugPrint('Walk Document ID: $walkDocumentId');
+        debugPrint('POI ID: $poiId');
+
+        debugPrint('Information: ${data['Information']}');
+        debugPrint('Latitude: $latitude');
+        debugPrint('Longitude: $longitude');
+      } else {
+        debugPrint('Location data is missing or invalid for POI ID: $poiId');
+      }
+      debugPrint('---');
+    }
+
+    colorIndex += 1;
+    return locations;
   }
 
   Future<void> fetchCrimeWalks() async {
@@ -336,7 +387,8 @@ class CrimeWalkModel extends ChangeNotifier
 
     crimeWalks.clear();
     for (var doc in querySnapshot.docs) {
-      crimeWalks.add(CrimeWalk.fromFirestore(doc));
+      final locations = await fetchPointsOfInterestFromWalk(doc);
+      crimeWalks.add(CrimeWalk.fromFirestore(doc, locations));
     }
 
     resetFilter();

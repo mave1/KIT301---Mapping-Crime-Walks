@@ -53,55 +53,6 @@ class _MyAppState extends State<MyApp> {
   String currentLongString = ""; //User's current location in string form - Longitude
   Position? _position; //Position object to store user's current location
 
-  // Retrieves the instance of the database into a variable, allowing further manipulation
-  final db = FirebaseFirestore.instance;
-
-  // Function Currently loops through walks, retrieves Points of Interest, then for each POI in a walk debugPrints to test that output is correct.
-  // Called at the start of build() to test.
-  Future<void> fetchPointsOfInterestFromAllWalks() async {
-    // First, get all documents in the "Walks" collection
-    QuerySnapshot walksSnapshot = await db.collection('Walks').get();
-
-    // Loop through each walk document
-    for (var walkDoc in walksSnapshot.docs) {
-      String walkDocumentId = walkDoc.id; // Get the auto-generated document ID
-
-      // Reference to the "Points of Interest" sub-collection for this walk document
-      CollectionReference pointsOfInterestRef = FirebaseFirestore.instance
-          .collection('Walks')
-          .doc(walkDocumentId)
-          .collection('Points of Interest');
-
-      // Get all documents from the "Points of Interest" sub-collection
-      QuerySnapshot pointsSnapshot = await pointsOfInterestRef.get();
-
-      // Print data for each point of interest
-      for (var pointDoc in pointsSnapshot.docs) {
-        Map<String, dynamic> data = pointDoc.data() as Map<String, dynamic>;
-        String poiId = pointDoc.id;
-
-        // Check if the location field is present and is a GeoPoint
-        if (data['Location'] != null && data['Location'] is GeoPoint) {
-          // Splitting GeoPoint into two variables for lat & long
-          GeoPoint location = data['Location'];
-          double latitude = location.latitude;
-          double longitude = location.longitude;
-
-          // document ID's only being printed for testing purposes, most likely not necessary for actual markers.
-          debugPrint('Walk Document ID: $walkDocumentId');
-          debugPrint('POI ID: $poiId');
-
-          debugPrint('Information: ${data['Information']}');
-          debugPrint('Latitude: $latitude');
-          debugPrint('Longitude: $longitude');
-        } else {
-          debugPrint('Location data is missing or invalid for POI ID: $poiId');
-        }
-        debugPrint('---');
-      }
-    }
-  }
-
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
   getCoordinates(String lat1, String long1, String lat2, String long2) async {
@@ -181,8 +132,10 @@ class _MyAppState extends State<MyApp> {
 
     //opens a stream to listen to changes in the user's current location
     StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
-      locationSettings: locationSettings).listen((Position? position) { 
-        _getCurrentLocation();
+      locationSettings: locationSettings).listen((Position? position) {
+        setState(() {
+          _getCurrentLocation();
+        });
       });
   }
 
@@ -208,91 +161,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
-
-    //testing that fetching points of interest function works, just outputs some debugprints into the debug console
-    fetchPointsOfInterestFromAllWalks();
-
-    // list of locations within the app
-    markerLocations = [
-      Marker(
-        point: const LatLng(-42.90395, 147.325439),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          onTap: () {
-            //TODO: input actual data into function
-            getCoordinates("-42.90395", "147.325439", "-42.91", "147.32");
-          },
-          child: const Icon(
-            Icons.location_pin,
-            size: 40,
-            color: Colors.red,
-          ),
-        ),
-      ),
-      //Extra sub markers until actual child markers are added
-      Marker(
-        point: const LatLng(-42.91, 147.32),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          onTap: () {
-            //TODO: input actual data into function
-            //getCoordinates();
-          },
-          child: const Icon(
-            Icons.location_pin,
-            size: 40,
-            color: Colors.red,
-          ),
-        ),
-      ),
-      Marker(
-        point: const LatLng(-42.92, 147.31),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          child: const Icon(
-            Icons.location_pin,
-            size: 40,
-            color: Colors.red,
-          ),
-        ),
-      ),
-
-      Marker(
-        point: const LatLng(-42.879601, 147.329874),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          onTap: () {
-            // TODO: open walk information here
-            getCoordinates("-42.90395", "147.325439", "-42.879601", "147.329874");
-          },
-          child: const Icon(
-            Icons.location_pin,
-            size: 40,
-            color: Colors.red,
-          ),
-        ),
-      ),
-      //Marker for the user's current location
-      Marker (
-        point: LatLng(currentLat, currentLong),
-        child: GestureDetector(
-          onTap: () {
-          getCoordinates(currentLatString, currentLongString, "-42.879601", "147.329874");
-          },
-          child: const Icon(
-            Icons.circle,
-            size: 15,
-            color: Colors.blue,
-        )
-        )
-      )
-    ];
-
     return ChangeNotifierProvider(
       create: (context) => CrimeWalkModel(),
       child: Scaffold(
