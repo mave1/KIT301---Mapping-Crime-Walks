@@ -240,6 +240,24 @@ class CrimeWalkModel extends ChangeNotifier
     for (var doc in querySnapshot.docs) {
       crimeWalks.add(CrimeWalk.fromFirestore(doc));
     }
+    
+    crimeWalks[0].locations.add(CrimeWalkLocation(latitude: -42.886554838136846,
+        longitude: 147.3198146282025,
+        description: "100 Goulburn Street is where Evelyn Maughan, the 7 year old girl who was abducted and killed by Frederick Thompson in 1945, lived with her family. She was last seen alive on the 8th July 1945 heading to the nearby church. Initially her body was not found, but 3 months later her remains were found in the Queenborough Cemetery by a member of the public who was looking for his father's place of rest. He found a child's shoe and then the body and altered police immediately. Frederick Thompson was a convicted sex offender who was a wharf labourer by trade and the last person executed in Tasmania. Today at 100 Goulburn Street there is a small art installation in front of the Maughan home commemorating Evelyn.",
+        color: Colors.deepPurple));
+    crimeWalks[1].locations.add(CrimeWalkLocation(latitude: -42.881902259533184,
+        longitude: 147.33569091753807,
+        description: "Footsteps Sculpture. Four sculptures commemorating the convict women and children transported to VDL (Tasmania). This was the disembarkation point for all convicts entering Hobart. The sculpture simply titled \"Footsteps\" was created by Rowan Gillespie and unveiled on October 14 2017. In total 13,000 convict women were transported to VDL in the 50 years between 1803 and 1853, bringing with them 2,000 children.",
+        color: Colors.green));
+    crimeWalks[2].locations.add(CrimeWalkLocation(latitude: -42.84014,
+        longitude: 147.34966,
+        description: "Test POI 2",
+        color: Colors.red));
+    crimeWalks[3].locations.add(CrimeWalkLocation(latitude: -42.88268488248128,
+        longitude: 147.32955278742915,
+        description: "Formerly known as the Stage Door Cabaret. This was a popular location for young people to meet in the early 20th century for romance, song and dance. It was here inside that on the 27th August 1945 Mona Hazel Gladys Elliot and Harry Cleaver caught up and had a dance. Mona's sister was also present. Mona had a cut or bruise on her forehead but she said it was nothing and it isn't clear how she got that mark. Witnesses reported seeing her at Franklin Square before her arrival to the Stage Door Cabaret. Inside Cleaver's brother and a friend started a fight with three sailors. A police officer asked all of them to leave. The brawl continued on the street. ",
+        color: Colors.orange));
+    
 
     resetFilter();
   }

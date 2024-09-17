@@ -61,7 +61,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   }
 
   // Method to show statistics from current walk the user is on, button is only shown if user is currently on a walk
-  void _showWalkStats(BuildContext context, CrimeWalk walk) {
+  void _showWalkStats(BuildContext context, CrimeWalk walk, CrimeWalkModel model) {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -89,6 +89,9 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                   onWalk = false; // Update the onWalk variable
                                 });
                                 print("Walk ended");
+                                model.cancelWalk();
+
+                                Navigator.pop(context);
                               },
                               child: const Text('End Walk')
                           ),
@@ -293,7 +296,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
             child: ElevatedButton(
               onPressed: () {
                 var walk = model.filteredWalks[1];
-                _showWalkStats(context, walk);
+                _showWalkStats(context, walk, model);
               },
               child: const Text('Walk Stats'),
             ),
