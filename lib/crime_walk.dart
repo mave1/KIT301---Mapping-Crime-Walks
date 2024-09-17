@@ -1,5 +1,104 @@
-import 'dart:collection';
+// import 'package:flutter/material.dart';
 
+// enum CrimeType
+// {
+//   ALL
+// }
+
+// enum Length
+// {
+//   ALL
+// }
+
+// enum Location
+// {
+//   ALL,
+//   HOBART,
+//   LAUNCESTON
+// }
+
+// enum Difficulty
+// {
+//   ALL
+// }
+
+// enum TransportType
+// {
+//   ALL,
+//   WALK,
+//   CAR
+// }
+
+// class CrimeWalk
+// {
+//   CrimeWalk({required this.name, required this.description, required this.yearOccurred, required this.crimeType, required this.length, required this.location, required this.difficulty, required this.transportType});
+
+//   String name;
+//   String description;
+//   int yearOccurred;
+//   CrimeType crimeType;
+//   Length length;
+//   Location location;
+//   Difficulty difficulty;
+//   TransportType transportType;
+// }
+
+// class CrimeWalkModel extends ChangeNotifier
+// {
+//   final List<CrimeWalk> crimeWalks = [];
+//   final List<CrimeWalk> filteredWalks = [];
+
+//   CrimeWalkModel()
+//   {
+//     crimeWalks.add(CrimeWalk(name: "The Crime Walk", description: "A walk through the city of Hobart", yearOccurred: 2021, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Drive", description: "A drive through the city of Launceston", yearOccurred: 2000, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Walk 2", description: "A walk through the city of Hobart", yearOccurred: 1980, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Drive 2", description: "A drive through the city of Launceston", yearOccurred: 1990, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Drive 3", description: "A drive through the city of Hobart", yearOccurred: 1500, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Drive 4", description: "A drive through the city of Launceston", yearOccurred: 1670, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Walk 3", description: "A walk through the city of Hobart", yearOccurred: 1280, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
+//     crimeWalks.add(CrimeWalk(name: "The Crime Walk 4", description: "A walk through the city of Launceston", yearOccurred: 1800, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
+
+//     resetFilter();
+//   }
+
+//   void resetFilter()
+//   {
+//     filterWalks(0, -1 >>> 1, CrimeType.ALL, Length.ALL, Location.ALL, Difficulty.ALL, TransportType.ALL);
+//   }
+
+//   void filterWalks(int minYear, int maxYear, CrimeType crimeType, Length length, Location location, Difficulty difficulty, TransportType transportType)
+//   {
+//     filteredWalks.clear();
+
+//     for (var element in crimeWalks) {
+//       if (element.yearOccurred >= minYear &&
+//           element.yearOccurred <= maxYear &&
+//           (crimeType == CrimeType.ALL || element.crimeType == crimeType) &&
+//           (length == Length.ALL || element.length == length) &&
+//           (location == Location.ALL || element.location == location) &&
+//           (difficulty == Difficulty.ALL || element.difficulty == difficulty) &&
+//           (transportType == TransportType.ALL || element.transportType == transportType))
+//       {
+//         filteredWalks.add(element);
+//       }
+//     }
+
+//     update();
+//   }
+
+//   void addCrimeWalk(CrimeWalk crimeWalk)
+//   {
+//     crimeWalks.add(crimeWalk);
+//   }
+
+//   void update()
+//   {
+//     notifyListeners();
+//   }
+// }
+
+import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
@@ -17,8 +116,7 @@ enum Difficulty { ALL, EASY, MEDIUM, HARD }
 // All possible types of transport required for participating in the crime walk and a default ALL value that is used for filtering
 enum TransportType { ALL, WALK, CAR }
 
-class CrimeWalk
-{
+class CrimeWalk {
   CrimeWalk({
     required this.name,
     required this.description,
@@ -44,14 +142,14 @@ class CrimeWalk
   // Get snapshot of data from the firebase, put it in the data variable to be able to access
 
   factory CrimeWalk.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  
+  // Gets each variable in the database and maps it to a CrimeWalk
 
-    // Gets each variable in the database and maps it to a CrimeWalk
-
-    return CrimeWalk(
-      name: data['Title'] ?? '',
-      description: data['Description'] ?? '',
-      yearOccurred: data['YearOccured'] ?? 0,
+  return CrimeWalk(
+    name: data['Title'] ?? '',
+    description: data['Description'] ?? '',
+    yearOccurred: data['YearOccurred'] ?? 0,
 
       //This maps the string variable found in the database to the enums we have set for each category
       //At the moment the string variable has to be exact and correct case to match properly
@@ -240,24 +338,6 @@ class CrimeWalkModel extends ChangeNotifier
     for (var doc in querySnapshot.docs) {
       crimeWalks.add(CrimeWalk.fromFirestore(doc));
     }
-    
-    crimeWalks[0].locations.add(CrimeWalkLocation(latitude: -42.886554838136846,
-        longitude: 147.3198146282025,
-        description: "100 Goulburn Street is where Evelyn Maughan, the 7 year old girl who was abducted and killed by Frederick Thompson in 1945, lived with her family. She was last seen alive on the 8th July 1945 heading to the nearby church. Initially her body was not found, but 3 months later her remains were found in the Queenborough Cemetery by a member of the public who was looking for his father's place of rest. He found a child's shoe and then the body and altered police immediately. Frederick Thompson was a convicted sex offender who was a wharf labourer by trade and the last person executed in Tasmania. Today at 100 Goulburn Street there is a small art installation in front of the Maughan home commemorating Evelyn.",
-        color: Colors.deepPurple));
-    crimeWalks[1].locations.add(CrimeWalkLocation(latitude: -42.881902259533184,
-        longitude: 147.33569091753807,
-        description: "Footsteps Sculpture. Four sculptures commemorating the convict women and children transported to VDL (Tasmania). This was the disembarkation point for all convicts entering Hobart. The sculpture simply titled \"Footsteps\" was created by Rowan Gillespie and unveiled on October 14 2017. In total 13,000 convict women were transported to VDL in the 50 years between 1803 and 1853, bringing with them 2,000 children.",
-        color: Colors.green));
-    crimeWalks[2].locations.add(CrimeWalkLocation(latitude: -42.84014,
-        longitude: 147.34966,
-        description: "Test POI 2",
-        color: Colors.red));
-    crimeWalks[3].locations.add(CrimeWalkLocation(latitude: -42.88268488248128,
-        longitude: 147.32955278742915,
-        description: "Formerly known as the Stage Door Cabaret. This was a popular location for young people to meet in the early 20th century for romance, song and dance. It was here inside that on the 27th August 1945 Mona Hazel Gladys Elliot and Harry Cleaver caught up and had a dance. Mona's sister was also present. Mona had a cut or bruise on her forehead but she said it was nothing and it isn't clear how she got that mark. Witnesses reported seeing her at Franklin Square before her arrival to the Stage Door Cabaret. Inside Cleaver's brother and a friend started a fight with three sailors. A police officer asked all of them to leave. The brawl continued on the street. ",
-        color: Colors.orange));
-    
 
     resetFilter();
   }
