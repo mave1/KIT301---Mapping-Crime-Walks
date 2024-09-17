@@ -138,7 +138,7 @@ class CrimeWalk {
   return CrimeWalk(
     name: data['Title'] ?? '',
     description: data['Description'] ?? '',
-    yearOccurred: data['YearOccured'] ?? 0,
+    yearOccurred: data['YearOccurred'] ?? 0,
 
     //This maps the string variable found in the database to the enums we have set for each category
     //At the moment the string variable has to be exact and correct case to match properly

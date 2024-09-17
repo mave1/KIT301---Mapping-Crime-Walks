@@ -53,25 +53,8 @@ class _MyAppState extends State<MyApp>{
   // Retrieves the instance of the database into a variable, allowing further manipulation
   final db = FirebaseFirestore.instance;
 
-  // Function that retrieves data from the database, puts it into a lits and then returns it
-  /**Future<List<Map<String, dynamic>>> fetchWalks() async {
-    try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db.collection("Walks").get();
-
-      List<Map<String, dynamic>> walks = [];
-
-      for (var docSnapshot in querySnapshot.docs) {
-        walks.add(docSnapshot.data());  // Collect each document's data into the list
-      }
-
-      debugPrint("Successfully fetched ${walks.length} walks.");
-      return walks;
-    } catch (e) {
-      debugPrint("Error fetching walks: $e");
-      return []; // Return an empty list on error
-    }
-  }*/
-
+  // Function Currently loops through walks, retrieves Points of Interest, then for each POI in a walk debugPrints to test that output is correct.
+  // Called at the start of build() to test.
   Future<void> fetchPointsOfInterestFromAllWalks() async {
     // First, get all documents in the "Walks" collection
     QuerySnapshot walksSnapshot = await db.collection('Walks').get();
@@ -96,12 +79,15 @@ class _MyAppState extends State<MyApp>{
 
         // Check if the location field is present and is a GeoPoint
         if (data['Location'] != null && data['Location'] is GeoPoint) {
+          // Splitting GeoPoint into two variables for lat & long
           GeoPoint location = data['Location'];
           double latitude = location.latitude;
           double longitude = location.longitude;
 
+          // document ID's only being printed for testing purposes, most likely not necessary for actual markers.
           debugPrint('Walk Document ID: $walkDocumentId');
           debugPrint('POI ID: $poiId');
+
           debugPrint('Information: ${data['Information']}');
           debugPrint('Latitude: $latitude');
           debugPrint('Longitude: $longitude');
@@ -221,7 +207,7 @@ class _MyAppState extends State<MyApp>{
   Widget build(BuildContext context) {
     var markerLocations = <Marker>[]; // marker list variable used to add markers onto map
 
-    //testing that function works
+    //testing that fetching points of interest function works, just outputs some debugprints into the debug console
     fetchPointsOfInterestFromAllWalks();
 
     // list of locations within the app
