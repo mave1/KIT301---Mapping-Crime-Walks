@@ -114,7 +114,7 @@ enum Location { ALL, HOBART, LAUNCESTON }
 // All possible difficulty levels for the walk and a default ALL value that is used for filtering
 enum Difficulty { ALL, EASY, MEDIUM, HARD }
 // All possible types of transport required for participating in the crime walk and a default ALL value that is used for filtering
-enum TransportType { ALL, WALK, CAR }
+enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR }
 
 class CrimeWalk {
   CrimeWalk({
@@ -138,6 +138,7 @@ class CrimeWalk {
   Difficulty difficulty;
   TransportType transportType;
   LinkedList<CrimeWalkLocation> locations;
+  bool isCompleted = false;
 
 
   // Get snapshot of data from the firebase, put it in the data variable to be able to access
@@ -202,12 +203,28 @@ class CrimeWalk {
   {
     var markers = <Marker>[];
 
-    for (var location in locations)
+    if (locations.isNotEmpty)
     {
-      var marker = location.createPOI(context, model, this, filtered);
+      var marker = locations.first.createPOI(context, model, this, filtered);
 
       if (marker != null) markers.add(marker);
+
+      // Copy pasted code because I can.
+      // Add the last marker as well to show a basic preview of the walk.
+      if (locations.first != locations.last)
+      {
+        marker = locations.last.createPOI(context, model, this, filtered);
+
+        if (marker != null) markers.add(marker);
+      }
     }
+
+    // for (var location in locations)
+    // {
+    //   var marker = location.createPOI(context, model, this, filtered);
+    //
+    //   if (marker != null) markers.add(marker);
+    // }
 
     return markers;
   }
@@ -256,6 +273,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
+                          FilledButton(onPressed: onPressed(context, model, walk, walk.locations.first), child: const Text("First Marker")),
                           FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
                         ]
                     ),
@@ -363,18 +381,9 @@ class CrimeWalkModel extends ChangeNotifier
         double longitude = location.longitude;
 
         locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length]));
-
-        // document ID's only being printed for testing purposes, most likely not necessary for actual markers.
-        debugPrint('Walk Document ID: $walkDocumentId');
-        debugPrint('POI ID: $poiId');
-
-        debugPrint('Information: ${data['Information']}');
-        debugPrint('Latitude: $latitude');
-        debugPrint('Longitude: $longitude');
       } else {
         debugPrint('Location data is missing or invalid for POI ID: $poiId');
       }
-      debugPrint('---');
     }
 
     colorIndex += 1;
@@ -390,6 +399,9 @@ class CrimeWalkModel extends ChangeNotifier
       final locations = await fetchPointsOfInterestFromWalk(doc);
       crimeWalks.add(CrimeWalk.fromFirestore(doc, locations));
     }
+
+    // TODO: REMOVE
+    crimeWalks.last.isCompleted = true;
 
     resetFilter();
   }
@@ -431,21 +443,22 @@ class CrimeWalkModel extends ChangeNotifier
 
   void resetFilter()
   {
-    filterWalks(0, -1 >>> 1, CrimeType.ALL, 0.0, Location.ALL, Difficulty.ALL, TransportType.ALL);
+    filterWalks(0, -1 >>> 1, CrimeType.ALL, const RangeValues(0.0, 1000000.0), Location.ALL, Difficulty.ALL, TransportType.ALL, false);
   }
 
-  void filterWalks(int minYear, int maxYear, CrimeType crimeType, double length,
-      Location location, Difficulty difficulty, TransportType transportType) {
+  void filterWalks(int minYear, int maxYear, CrimeType crimeType, RangeValues lengthRange,
+      Location location, Difficulty difficulty, TransportType transportType, bool ignoreCompleted) {
     filteredWalks.clear();
 
     for (var element in crimeWalks) {
       if (element.yearOccurred >= minYear &&
           element.yearOccurred <= maxYear &&
           (crimeType == CrimeType.ALL || element.crimeType == crimeType) &&
-          (length == 0.0 || element.length == length) &&
+          (element.length >= lengthRange.start && element.length <= lengthRange.end) &&
           (location == Location.ALL || element.location == location) &&
           (difficulty == Difficulty.ALL || element.difficulty == difficulty) &&
-          (transportType == TransportType.ALL || element.transportType == transportType))
+          (transportType == TransportType.ALL || element.transportType == transportType) &&
+          (!ignoreCompleted || (ignoreCompleted && !element.isCompleted)))
       {
         filteredWalks.add(element);
       }
