@@ -203,28 +203,19 @@ class CrimeWalk {
   {
     var markers = <Marker>[];
 
-    if (locations.isNotEmpty)
+    for (var location in locations)
     {
-      var marker = locations.first.createPOI(context, model, this, filtered);
-
-      if (marker != null) markers.add(marker);
-
-      // Copy pasted code because I can.
-      // Add the last marker as well to show a basic preview of the walk.
-      if (locations.first != locations.last)
+      if (model.userSettings.currentWalk == null && (location == locations.first || location == locations.last))
       {
-        marker = locations.last.createPOI(context, model, this, filtered);
+        if (locations.first == locations.last && markers.isNotEmpty) break;
 
-        if (marker != null) markers.add(marker);
+        markers.add(location.createPOI(context, model, this, filtered));
+      }
+      else if (model.userSettings.currentWalk == this)
+      {
+        markers.add(location.createPOI(context, model, this, filtered));
       }
     }
-
-    // for (var location in locations)
-    // {
-    //   var marker = location.createPOI(context, model, this, filtered);
-    //
-    //   if (marker != null) markers.add(marker);
-    // }
 
     return markers;
   }
@@ -232,11 +223,12 @@ class CrimeWalk {
 
 final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
 {
-  CrimeWalkLocation({required this.latitude, required this.longitude, required this.description, required this.color});
+  CrimeWalkLocation({required this.latitude, required this.longitude, required this.description, required this.color, required this.index});
 
   double latitude;
   double longitude;
   Color color;
+  int index;
 
   String description;
 
@@ -245,25 +237,35 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
   {
     return showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         builder: (BuildContext context) => StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) => SingleChildScrollView(
-            child: Container(
+          builder: (BuildContext context, StateSetter setState) => Container(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Walk Summary',
-                    style: TextStyle(
+                  Text(
+                    "${walk.name} #${index + 1}",
+                    style: const TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const Divider(), // Add a divider between fields
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 14.0,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.35
+                    ),
+                    child: Scrollbar(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          description,
+                          style: const TextStyle(
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const Divider(), // Add a divider between fields
@@ -301,7 +303,6 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                 ],
               ),
             ),
-          ),
         )
     );
   }
@@ -317,11 +318,9 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
     } : null;
   }
 
-  Marker? createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
+  Marker createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
   {
-    CrimeWalk? currentWalk = model.userSettings.currentWalk;
-
-    return currentWalk == null || currentWalk == walk ? Marker(
+    return Marker(
       point: LatLng(latitude, longitude),
       width: 40,
       height: 40,
@@ -335,7 +334,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
           color: filtered ? Colors.grey : color,
         ),
       ),
-    ) : null;
+    );
   }
 }
 
@@ -380,7 +379,7 @@ class CrimeWalkModel extends ChangeNotifier
         double latitude = location.latitude;
         double longitude = location.longitude;
 
-        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length]));
+        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length], index: locations.length));
       } else {
         debugPrint('Location data is missing or invalid for POI ID: $poiId');
       }
@@ -417,6 +416,9 @@ class CrimeWalkModel extends ChangeNotifier
   void startWalk(CrimeWalk walk)
   {
     userSettings.currentWalk = walk;
+    userSettings.walkStarted = DateTime.now();
+    userSettings.distanceWalked = 0;
+    userSettings.checkpointsHit = 0;
 
     // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
     // TODO: MAYBE LET OTHER POINT AS START?

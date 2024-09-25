@@ -4,6 +4,7 @@ import 'package:crimewalksapp/walk_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:timer_builder/timer_builder.dart';
 import 'crime_walk.dart';
 
 extension StringExtension on String? {
@@ -67,7 +68,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   }
 
   // Method to show statistics from current walk the user is on, button is only shown if user is currently on a walk
-  void _showWalkStats(BuildContext context, CrimeWalk walk, CrimeWalkModel model) {
+  void _showWalkStats(BuildContext context, CrimeWalkModel model) {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -104,10 +105,18 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                         ),
                       ]
                   ),
-                  const Divider(), // Add a divider between fields
-                  _buildSummaryField('Distance Walked', '1360m', false),
-                  _buildSummaryField('Checkpoints Hit', '4', false),
-                  _buildSummaryField('Time Elapsed', '5:03', true),
+                  const Divider(), // Add a divi
+                  TimerBuilder.periodic(const Duration(seconds: 5),
+                      builder: (BuildContext context) {
+                        return Column(
+                          children: [
+                            _buildSummaryField('Distance Walked', '${model.userSettings.distanceWalked.toStringAsFixed(0)}m', false),
+                            _buildSummaryField('Checkpoints Hit', model.userSettings.checkpointsHit.toString(), false),
+                            _buildSummaryField('Time Elapsed', '${model.userSettings.getTimeElapsed()}h', true)
+                          ],
+                        );
+                      },
+                  ),
                 ],
               ),
             ),
@@ -351,7 +360,10 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                   // This is just supposed to be a decently sized box to show the filtered walks. Might need tuning.
                                   height: MediaQuery.of(context).size.height / 2.5,
                                   child: Scrollbar(
-                                    child: ListView.builder(
+                                    child: ListView.separated(
+                                      separatorBuilder: (context, index) {
+                                        return const Divider();
+                                      },
                                       itemBuilder: (context, index)
                                       {
                                         var walk = model.filteredWalks[index];
@@ -389,12 +401,16 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         ),
         if (model.userSettings.currentWalk != null) // Conditionally render the "walk stats" button
           Positioned(
-            bottom: 10,
+            bottom: 8,
             left: 10,
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onPressed: () {
-                var walk = model.filteredWalks[1];
-                _showWalkStats(context, walk, model);
+                _showWalkStats(context, model);
               },
               child: const Text('Walk Stats'),
             ),
