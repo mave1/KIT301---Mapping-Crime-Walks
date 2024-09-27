@@ -103,6 +103,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/user_settings.dart';
+import 'package:crimewalksapp/walk_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -118,6 +119,7 @@ enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR }
 
 class CrimeWalk {
   CrimeWalk({
+    required this.id,
     required this.name,
     required this.description,
     required this.yearOccurred,
@@ -129,6 +131,7 @@ class CrimeWalk {
     required this.locations
   });
 
+  String id;
   String name;
   String description;
   int yearOccurred;
@@ -149,6 +152,7 @@ class CrimeWalk {
     // Gets each variable in the database and maps it to a CrimeWalk
 
     return CrimeWalk(
+      id: doc.id,
       name: data['Title'] ?? '',
       description: data['Description'] ?? '',
       yearOccurred: data['YearOccurred'] ?? 0,
@@ -287,16 +291,8 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: FilledButton(onPressed: model.userSettings.currentWalk != walk ? () {
-                              setState(() {
-                                model.startWalk(walk);
-                              });
-                            }  : () {
-                              setState(() {
-                                model.cancelWalk();
-                              });
-                            }, child: model.userSettings.currentWalk != walk ? const Text('Start Walk') : const Text('Cancel Walk')),
-                          ),
+                            child: model.userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
+                          )
                         ]
                     ),
                   ) : const SizedBox(),

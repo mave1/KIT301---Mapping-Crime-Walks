@@ -1,5 +1,6 @@
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
+import 'package:crimewalksapp/walk_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -166,16 +167,7 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: FilledButton(onPressed: model.userSettings.currentWalk != walk ? () => {
-                                  setState(() {
-                                    model.startWalk(walk);
-                                  })
-                                } : () {
-                              setState(() {
-                                model.cancelWalk();
-                              });
-                            },
-                                child: model.userSettings.currentWalk != walk ? const Text('Start Walk') : const Text('Cancel Walk')),
+                            child: model.userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
                           ),
                         ]
                     ),
