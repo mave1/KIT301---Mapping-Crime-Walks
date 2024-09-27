@@ -306,18 +306,17 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                                   ),
                                                 ]
                                               ),
-                                              ExpansionTile(
+                                              CheckboxListTile(
                                                 title: const Text("Hide Finished Walks"),
-                                                expandedAlignment: Alignment.centerLeft,
-                                                children: [
-                                                  Checkbox(value: ignoreCompletedWalks, onChanged: (bool? value) {
-                                                    setState(() {
-                                                      ignoreCompletedWalks = value!;
-                                                    });
+                                                value: ignoreCompletedWalks,
+                                                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                onChanged: (bool? value) {
+                                                  setState(() {
+                                                    ignoreCompletedWalks = value!;
+                                                  });
 
-                                                    filterWalks(model);
-                                                  })
-                                                ],
+                                                  filterWalks(model);
+                                                },
                                               ),
                                             ]
                                           ).toList()

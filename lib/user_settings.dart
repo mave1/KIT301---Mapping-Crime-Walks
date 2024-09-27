@@ -7,8 +7,8 @@ class UserSettings {
   double currentLong = 0.0;
 
   // Walk stats for current walk
-  int checkpointsHit = 0;
-  double distanceWalked = 0.0;
+  int checkpointsHit = 0; // TODO:
+  double distanceWalked = 0.0; // TODO:
   var walkStarted = DateTime.now();
 
   String getTimeElapsed()
@@ -38,5 +38,4 @@ class UserSettings {
       distanceWalked = 0.0;
     }
   }
-
 }
