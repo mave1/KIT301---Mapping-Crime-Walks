@@ -3,6 +3,7 @@ import 'package:crimewalksapp/filtered_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 
 class WalkInfo extends StatefulWidget
@@ -87,6 +88,22 @@ class _WalkInfoState extends State<WalkInfo>
                   _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
                   _buildSummaryField('Physical Requirements', 'TODO', true),
                   _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
+                  if (walk.imageUrl != null)
+                      FutureBuilder<String>(
+                        future: _getImageUrl(walk.imageUrl!),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Image.network(snapshot.data!),
+                            );
+                          } else if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else {
+                            return Text('Failed to load image');
+                          }
+                        },
+                      ),
                 ],
               ),
             ),
@@ -187,6 +204,22 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                     _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
                     _buildSummaryField('Physical Requirements', 'TODO', true),
                     _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
+                    if (walk.imageUrl != null)
+                      FutureBuilder<String>(
+                        future: _getImageUrl(walk.imageUrl!),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Image.network(snapshot.data!),
+                            );
+                          } else if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else {
+                            return Text('Failed to load image');
+                          }
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -195,4 +228,9 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
         );
       }
   );
+}
+
+Future<String> _getImageUrl(String gsUrl) async {
+  final ref = FirebaseStorage.instance.refFromURL(gsUrl);
+  return await ref.getDownloadURL();
 }

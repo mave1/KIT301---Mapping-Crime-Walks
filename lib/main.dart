@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
@@ -86,7 +88,6 @@ class _MyAppState extends State<MyApp> {
       currentLatString = currentLat.toString();
       currentLongString = currentLong.toString();
     });
-
   }
 
   //a function to ask location services permissions and await the user's current location

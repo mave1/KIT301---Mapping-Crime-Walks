@@ -100,6 +100,7 @@
 
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/user_settings.dart';
@@ -126,7 +127,8 @@ class CrimeWalk {
     required this.location,
     required this.difficulty,
     required this.transportType,
-    required this.locations
+    required this.locations,
+    this.imageUrl
   });
 
   String name;
@@ -138,6 +140,7 @@ class CrimeWalk {
   Difficulty difficulty;
   TransportType transportType;
   LinkedList<CrimeWalkLocation> locations;
+  String? imageUrl;
 
 
   // Get snapshot of data from the firebase, put it in the data variable to be able to access
@@ -192,7 +195,9 @@ class CrimeWalk {
       )
           : TransportType.ALL,
 
-      locations: locations
+      locations: locations,
+
+      imageUrl: data['image'] as String?,
     );
   }
 
@@ -215,13 +220,16 @@ class CrimeWalk {
 
 final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
 {
-  CrimeWalkLocation({required this.latitude, required this.longitude, required this.description, required this.color});
+  CrimeWalkLocation({required this.latitude, required this.longitude, required this.description, required this.color, this.imageUrl});
 
   double latitude;
   double longitude;
   Color color;
 
   String description;
+
+  //Optional for if an image exists or not
+  String? imageUrl; 
 
   // The menu that appears when you click on a marker.
   Future buildMenu(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
@@ -249,7 +257,25 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                       fontSize: 14.0,
                     ),
                   ),
+                  // testing images
                   const Divider(), // Add a divider between fields
+                  if (imageUrl != null)
+                    FutureBuilder<String>(
+                      future: _getImageUrl(imageUrl!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.network(snapshot.data!),
+                          );
+                        } else if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else {
+                          return Text('Failed to load image');
+                        }
+                      },
+                    ),
+                  //end of images test
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -286,6 +312,11 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
           ),
         )
     );
+  }
+
+  Future<String> _getImageUrl(String gsUrl) async {
+    final ref = FirebaseStorage.instance.refFromURL(gsUrl);
+    return await ref.getDownloadURL();
   }
 
   Future? Function()? onPressed(BuildContext context, CrimeWalkModel model, CrimeWalk walk, CrimeWalkLocation? element)
@@ -362,7 +393,10 @@ class CrimeWalkModel extends ChangeNotifier
         double latitude = location.latitude;
         double longitude = location.longitude;
 
-        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length]));
+        // fetch image url if it exists
+        String? imageUrl = data['image'] as String?;
+
+        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length], imageUrl: imageUrl));
 
         // document ID's only being printed for testing purposes, most likely not necessary for actual markers.
         debugPrint('Walk Document ID: $walkDocumentId');
