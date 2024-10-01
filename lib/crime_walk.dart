@@ -104,6 +104,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/user_settings.dart';
+import 'package:crimewalksapp/walk_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -115,10 +116,11 @@ enum Location { ALL, HOBART, LAUNCESTON }
 // All possible difficulty levels for the walk and a default ALL value that is used for filtering
 enum Difficulty { ALL, EASY, MEDIUM, HARD }
 // All possible types of transport required for participating in the crime walk and a default ALL value that is used for filtering
-enum TransportType { ALL, WALK, CAR }
+enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR }
 
 class CrimeWalk {
   CrimeWalk({
+    required this.id,
     required this.name,
     required this.description,
     required this.yearOccurred,
@@ -131,6 +133,7 @@ class CrimeWalk {
     this.imageUrl
   });
 
+  String id;
   String name;
   String description;
   int yearOccurred;
@@ -140,6 +143,7 @@ class CrimeWalk {
   Difficulty difficulty;
   TransportType transportType;
   LinkedList<CrimeWalkLocation> locations;
+  bool isCompleted = false;
   String? imageUrl;
 
 
@@ -151,6 +155,7 @@ class CrimeWalk {
     // Gets each variable in the database and maps it to a CrimeWalk
 
     return CrimeWalk(
+      id: doc.id,
       name: data['Title'] ?? '',
       description: data['Description'] ?? '',
       yearOccurred: data['YearOccurred'] ?? 0,
@@ -209,9 +214,16 @@ class CrimeWalk {
 
     for (var location in locations)
     {
-      var marker = location.createPOI(context, model, this, filtered);
+      if (model.userSettings.currentWalk == null && (location == locations.first || location == locations.last))
+      {
+        if (locations.first == locations.last && markers.isNotEmpty) break;
 
-      if (marker != null) markers.add(marker);
+        markers.add(location.createPOI(context, model, this, filtered));
+      }
+      else if (model.userSettings.currentWalk == this)
+      {
+        markers.add(location.createPOI(context, model, this, filtered));
+      }
     }
 
     return markers;
@@ -220,11 +232,12 @@ class CrimeWalk {
 
 final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
 {
-  CrimeWalkLocation({required this.latitude, required this.longitude, required this.description, required this.color, this.imageUrl});
+  CrimeWalkLocation({required this.latitude, required this.longitude, required this.description, required this.color, required this.index, this.imageUrl});
 
   double latitude;
   double longitude;
   Color color;
+  int index;
 
   String description;
 
@@ -236,25 +249,35 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
   {
     return showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         builder: (BuildContext context) => StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) => SingleChildScrollView(
-            child: Container(
+          builder: (BuildContext context, StateSetter setState) => Container(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Walk Summary',
-                    style: TextStyle(
+                  Text(
+                    "${walk.name} #${index + 1}",
+                    style: const TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const Divider(), // Add a divider between fields
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 14.0,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.35
+                    ),
+                    child: Scrollbar(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          description,
+                          style: const TextStyle(
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   // testing images
@@ -282,6 +305,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
+                          FilledButton(onPressed: onPressed(context, model, walk, walk.locations.first), child: const Text("First Marker")),
                           FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
                         ]
                     ),
@@ -293,23 +317,14 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: FilledButton(onPressed: model.userSettings.currentWalk != walk ? () {
-                              setState(() {
-                                model.startWalk(walk);
-                              });
-                            }  : () {
-                              setState(() {
-                                model.cancelWalk();
-                              });
-                            }, child: model.userSettings.currentWalk != walk ? const Text('Start Walk') : const Text('Cancel Walk')),
-                          ),
+                            child: model.userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
+                          )
                         ]
                     ),
                   ) : const SizedBox(),
                 ],
               ),
             ),
-          ),
         )
     );
   }
@@ -330,11 +345,9 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
     } : null;
   }
 
-  Marker? createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
+  Marker createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
   {
-    CrimeWalk? currentWalk = model.userSettings.currentWalk;
-
-    return currentWalk == null || currentWalk == walk ? Marker(
+    return Marker(
       point: LatLng(latitude, longitude),
       width: 40,
       height: 40,
@@ -348,7 +361,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
           color: filtered ? Colors.grey : color,
         ),
       ),
-    ) : null;
+    );
   }
 }
 
@@ -396,19 +409,10 @@ class CrimeWalkModel extends ChangeNotifier
         // fetch image url if it exists
         String? imageUrl = data['image'] as String?;
 
-        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length], imageUrl: imageUrl));
-
-        // document ID's only being printed for testing purposes, most likely not necessary for actual markers.
-        debugPrint('Walk Document ID: $walkDocumentId');
-        debugPrint('POI ID: $poiId');
-
-        debugPrint('Information: ${data['Information']}');
-        debugPrint('Latitude: $latitude');
-        debugPrint('Longitude: $longitude');
+        locations.add(CrimeWalkLocation(latitude: latitude, longitude: longitude, description: data['Information'], color: possibleColors[colorIndex % possibleColors.length], imageUrl: imageUrl, index: locations.length));
       } else {
         debugPrint('Location data is missing or invalid for POI ID: $poiId');
       }
-      debugPrint('---');
     }
 
     colorIndex += 1;
@@ -425,6 +429,9 @@ class CrimeWalkModel extends ChangeNotifier
       crimeWalks.add(CrimeWalk.fromFirestore(doc, locations));
     }
 
+    // TODO: REMOVE
+    crimeWalks.last.isCompleted = true;
+
     resetFilter();
   }
 
@@ -439,6 +446,9 @@ class CrimeWalkModel extends ChangeNotifier
   void startWalk(CrimeWalk walk)
   {
     userSettings.currentWalk = walk;
+    userSettings.walkStarted = DateTime.now();
+    userSettings.distanceWalked = 0;
+    userSettings.checkpointsHit = 0;
 
     // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
     // TODO: MAYBE LET OTHER POINT AS START?
@@ -465,21 +475,22 @@ class CrimeWalkModel extends ChangeNotifier
 
   void resetFilter()
   {
-    filterWalks(0, -1 >>> 1, CrimeType.ALL, 0.0, Location.ALL, Difficulty.ALL, TransportType.ALL);
+    filterWalks(0, -1 >>> 1, CrimeType.ALL, const RangeValues(0.0, 1000000.0), Location.ALL, Difficulty.ALL, TransportType.ALL, false);
   }
 
-  void filterWalks(int minYear, int maxYear, CrimeType crimeType, double length,
-      Location location, Difficulty difficulty, TransportType transportType) {
+  void filterWalks(int minYear, int maxYear, CrimeType crimeType, RangeValues lengthRange,
+      Location location, Difficulty difficulty, TransportType transportType, bool ignoreCompleted) {
     filteredWalks.clear();
 
     for (var element in crimeWalks) {
       if (element.yearOccurred >= minYear &&
           element.yearOccurred <= maxYear &&
           (crimeType == CrimeType.ALL || element.crimeType == crimeType) &&
-          (length == 0.0 || element.length == length) &&
+          (element.length >= lengthRange.start && element.length <= lengthRange.end) &&
           (location == Location.ALL || element.location == location) &&
           (difficulty == Difficulty.ALL || element.difficulty == difficulty) &&
-          (transportType == TransportType.ALL || element.transportType == transportType))
+          (transportType == TransportType.ALL || element.transportType == transportType) &&
+          (!ignoreCompleted || (ignoreCompleted && !element.isCompleted)))
       {
         filteredWalks.add(element);
       }
