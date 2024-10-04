@@ -1,5 +1,6 @@
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
+import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/walk_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,9 +73,9 @@ class _WalkInfoState extends State<WalkInfo>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: FilledButton(onPressed: model.userSettings.currentWalk != walk ? () => {
+                          child: FilledButton(onPressed: userSettings.currentWalk != walk ? () => {
                             setState(() {
-                              model.startWalk(walk);
+                              userSettings.startWalk(walk, model);
                             })
                           } : null, child: const Text('Start Walk')),
                         ),
@@ -121,13 +122,6 @@ class _WalkInfoState extends State<WalkInfo>
         showWalkSummary(context, model, widget.walk);
 
         return SizedBox.shrink();
-
-        return model.userSettings.currentWalk != null ? FloatingActionButton(
-          onPressed: () {
-            showWalkSummary(context, model, model.userSettings.currentWalk!);
-          },
-          child: const Icon(Icons.directions_walk),
-        ) : const SizedBox.shrink();
       },
     );
 
@@ -184,20 +178,20 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: model.userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
+                            child: userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
                           ),
                         ]
                     ),
                     const Divider(), // Add a divider between fields
                     _buildSummaryField('Name', walk.name.toString(), false),
                     _buildSummaryField('Description', walk.description.toString(), false),
-                    _buildSummaryField('Walk Completed', walk.isCompleted.toString(), true),
+                    _buildSummaryField('Walk Completed', walk.isCompleted ? "Yes" : "No", true),
                     _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
-                    _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" "), true),
+                    _buildSummaryField('Length', walk.length.toStringAsFixed(1), true),
                     _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
                     _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
-                    _buildSummaryField('Wheelchair Accessible', (walk.transportType == TransportType.CAR || walk.transportType == TransportType.WHEELCHAIR_ACCESS).toString(), true),
-                    _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
+                    _buildSummaryField('Wheelchair Accessible', (walk.transportType == TransportType.CAR || walk.transportType == TransportType.WHEELCHAIR_ACCESS) ? "Yes" : "No", true),
+                    _buildSummaryField('Transport Type', walk.transportType.toString().split('.').last.replaceAll(RegExp('_'), ' '), true),
                     if (walk.imageUrl != null)
                       FutureBuilder<String>(
                         future: _getImageUrl(walk.imageUrl!),
@@ -208,9 +202,9 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                               child: Image.network(snapshot.data!),
                             );
                           } else if (snapshot.connectionState == ConnectionState.waiting) {
-                            return CircularProgressIndicator();
+                            return const CircularProgressIndicator();
                           } else {
-                            return Text('Failed to load image');
+                            return const Text('Failed to load image');
                           }
                         },
                       ),

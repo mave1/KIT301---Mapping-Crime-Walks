@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/walk_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -97,7 +98,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                   onWalk = false; // Update the onWalk variable
                                 });
                                 print("Walk ended");
-                                model.cancelWalk();
+                                userSettings.cancelWalk(model);
 
                                 Navigator.pop(context);
                               },
@@ -111,9 +112,9 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                       builder: (BuildContext context) {
                         return Column(
                           children: [
-                            _buildSummaryField('Distance Walked', '${model.userSettings.distanceWalked.toStringAsFixed(0)}m', false),
-                            _buildSummaryField('Checkpoints Hit', model.userSettings.checkpointsHit.toString(), false),
-                            _buildSummaryField('Time Elapsed', '${model.userSettings.getTimeElapsed()}h', true)
+                            _buildSummaryField('Distance Walked', '${userSettings.distanceWalked.toStringAsFixed(0)}m', false),
+                            _buildSummaryField('Checkpoints Hit', userSettings.checkpointsHit.toString(), false),
+                            _buildSummaryField('Time Elapsed', '${userSettings.getTimeElapsed()}h', true)
                           ],
                         );
                       },
@@ -176,7 +177,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
           ),
           child: const Text("Search Walks"),
           onPressed: () {
-            previousWalk = Provider.of<CrimeWalkModel>(context, listen: false).userSettings.currentWalk;
+            previousWalk = userSettings.currentWalk;
             animateMenuState();
           }
       ),
@@ -198,13 +199,16 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   // The menu that appears when you click on the Search Walks/createButton button.
   Widget createMenu(BuildContext context, CrimeWalkModel model, _)
   {
-    if (previousWalk != model.userSettings.currentWalk && showMenu)
+    if (previousWalk != userSettings.currentWalk && showMenu)
     {
-      Future.microtask(() {
-        animateMenuState();
-      });
+      if (userSettings.currentWalk != null)
+      {
+        Future.microtask(() {
+          animateMenuState();
+        });
+      }
 
-      previousWalk = model.userSettings.currentWalk;
+      previousWalk = userSettings.currentWalk;
     }
     
     // print(model.crimeWalks.reduce((a,b) => a.length < b.length ? a : b).length);
@@ -415,7 +419,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
               ],
             ),
         ),
-        if (model.userSettings.currentWalk != null) // Conditionally render the "walk stats" button
+        if (userSettings.currentWalk != null) // Conditionally render the "walk stats" button
           Positioned(
             bottom: 8,
             left: 10,

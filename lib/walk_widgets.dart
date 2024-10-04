@@ -1,4 +1,5 @@
 import 'package:crimewalksapp/crime_walk.dart';
+import 'package:crimewalksapp/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,7 @@ class _StartWalkButtonState extends State<StartWalkButton> with SingleTickerProv
     return FilledButton(
       onPressed: () {
         setState(() {
-          widget.model.startWalk(widget.walk);
+          userSettings.startWalk(widget.walk, widget.model);
         });
 
         widget.callback();
@@ -50,7 +51,7 @@ class _CancelWalkButtonState extends State<CancelWalkButton> with SingleTickerPr
     return FilledButton(
       onPressed: () {
         setState(() {
-          widget.model.cancelWalk();
+          userSettings.cancelWalk(widget.model);
         });
 
         widget.callback();

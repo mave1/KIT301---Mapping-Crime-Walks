@@ -24,6 +24,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // for formatting the date
 
+UserSettings userSettings = UserSettings();
+
 Future<void> main() async {
   try {
     //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
@@ -135,7 +137,31 @@ class _MyAppState extends State<MyApp> {
     StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
       locationSettings: locationSettings).listen((Position? position) {
         setState(() {
+          var beforeUpdate = LatLng(currentLat, currentLong);
+
           _getCurrentLocation();
+
+          if (userSettings.currentWalk != null && !userSettings.currentWalk!.isCompleted)
+          {
+            // checkpoint to reach
+            CrimeWalkLocation toReach = userSettings.getNextLocation();
+
+            double distTravelled = geologicalDistance(LatLng(currentLat, currentLong), LatLng(toReach.latitude, toReach.longitude));
+            userSettings.distanceWalked += geologicalDistance(beforeUpdate, LatLng(currentLat, currentLong));
+
+            // generate route from currentLocation to toReach.
+            if (toReach.next != null && true) // replace true with atomic variable that determines if a route is being calculated async (i.e. hasn't returned yet).
+            {
+              // generate route to seamlessly transition from toReach -> toReach.next when reaching current checkpoint
+            }
+
+            if (distTravelled <= 5.0)
+            {
+              userSettings.checkpointReached();
+            }
+
+            // update route
+          }
         });
       });
   }
@@ -180,9 +206,6 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           openStreetMapTileLayer, //input map
                           MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
-                          // MarkerLayer(
-                          //   markers: markerLocations,
-                          // ),
                           if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
                               polylines: [
@@ -193,7 +216,6 @@ class _MyAppState extends State<MyApp> {
                                 )
                               ],
                             ),
-                                  //popup test marker
                           copyrightNotice, // input copyright
                         ],
                       ),
@@ -205,9 +227,6 @@ class _MyAppState extends State<MyApp> {
                 alignment: Alignment.bottomCenter,
                 child: Row(
                     children: [
-                      // TODO:  Expanded(child: FilteredList())
-                      // TODO:  Expanded(child: FilteredList())
-                      // TODO:  Expanded(child: FilteredList())
                       Expanded(child: FilteredList())
                     ]
                 ),
@@ -216,9 +235,9 @@ class _MyAppState extends State<MyApp> {
         ),
         floatingActionButton: Consumer<CrimeWalkModel>(
           builder: (context, model, _) {
-            return model.userSettings.currentWalk != null ? FloatingActionButton(
+            return userSettings.currentWalk != null ? FloatingActionButton(
               onPressed: () {
-                showWalkSummary(context, model, model.userSettings.currentWalk!);
+                showWalkSummary(context, model, userSettings.currentWalk!);
               },
               child: const Icon(Icons.directions_walk),
             ) : const SizedBox.shrink();

@@ -25,17 +25,62 @@ class UserSettings {
 
   List<CrimeWalk> bookmarkedWalks = [];
 
-  void finishWalk()
+  CrimeWalkLocation getNextLocation()
+  {
+    return locationsReached.firstWhere((location) => !currentWalk!.locations.contains(location));
+  }
+
+  void checkpointReached()
+  {
+    locationsReached.add(getNextLocation());
+    checkpointsHit += 1;
+
+    if (locationsReached.last.next == null)
+    {
+      _finishWalk();
+    }
+  }
+
+  void cancelWalk(CrimeWalkModel? model)
+  {
+    currentWalk = null;
+    locationsReached.clear();
+
+    model?.update();
+  }
+
+  void startWalk(CrimeWalk walk, CrimeWalkModel? model)
+  {
+    currentWalk = walk;
+    walkStarted = DateTime.now();
+    distanceWalked = 0;
+    checkpointsHit = 0;
+
+    // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
+    // TODO: MAYBE LET OTHER POINT AS START?
+
+    // ONCE REACHES POINT DISPLAY CHECKPOINT INFO AND GENERATE UPDATING ROUTE FROM CURRENT LOCATION TO NEXT POINT
+    // REPEAT UNTIL DONE
+
+    // ONCE DONE SHOW DIFFERENT SCREEN?
+
+    // userSettings.finishWalk();
+
+    model?.update();
+  }
+
+  void _finishWalk()
   {
     if (currentWalk != null)
     {
       currentWalk!.isCompleted = true;
 
-      currentWalk = null;
-      locationsReached.clear();
-
-      checkpointsHit = 0;
-      distanceWalked = 0.0;
+      // Let user see these stats.
+      // currentWalk = null;
+      // locationsReached.clear();
+      //
+      // checkpointsHit = 0;
+      // distanceWalked = 0.0;
     }
   }
 }

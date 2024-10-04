@@ -100,6 +100,7 @@
 
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crimewalksapp/walk_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
@@ -214,13 +215,11 @@ class CrimeWalk {
 
     for (var location in locations)
     {
-      if (model.userSettings.currentWalk == null && (location == locations.first || location == locations.last))
+      if (userSettings.currentWalk == null && location == locations.first)
       {
-        if (locations.first == locations.last && markers.isNotEmpty) break;
-
         markers.add(location.createPOI(context, model, this, filtered));
       }
-      else if (model.userSettings.currentWalk == this)
+      else if (userSettings.currentWalk == this)
       {
         markers.add(location.createPOI(context, model, this, filtered));
       }
@@ -317,7 +316,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: model.userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
+                            child: userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
                           )
                         ]
                     ),
@@ -353,7 +352,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
       height: 40,
       child: GestureDetector(
         onTap: () {
-          buildMenu(context, model, walk);
+          userSettings.currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
         },
         child: Icon(
           Icons.location_pin,
@@ -372,8 +371,6 @@ class CrimeWalkModel extends ChangeNotifier
   final List<Marker> markers = [];
   final List<Color> possibleColors = [Colors.red, Colors.orange, Colors.green, Colors.deepPurple, Colors.blue, Colors.pinkAccent, Colors.yellow];
   int colorIndex = 0;
-
-  UserSettings userSettings = UserSettings();
 
   CrimeWalkModel() {
     fetchCrimeWalks();
@@ -433,34 +430,6 @@ class CrimeWalkModel extends ChangeNotifier
     crimeWalks.last.isCompleted = true;
 
     resetFilter();
-  }
-
-  void cancelWalk()
-  {
-    userSettings.currentWalk = null;
-    userSettings.locationsReached.clear();
-
-    update();
-  }
-
-  void startWalk(CrimeWalk walk)
-  {
-    userSettings.currentWalk = walk;
-    userSettings.walkStarted = DateTime.now();
-    userSettings.distanceWalked = 0;
-    userSettings.checkpointsHit = 0;
-
-    // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
-    // TODO: MAYBE LET OTHER POINT AS START?
-
-    // ONCE REACHES POINT DISPLAY CHECKPOINT INFO AND GENERATE UPDATING ROUTE FROM CURRENT LOCATION TO NEXT POINT
-    // REPEAT UNTIL DONE
-
-    // ONCE DONE SHOW DIFFERENT SCREEN?
-
-    // userSettings.finishWalk();
-
-    update();
   }
 
   void generateMarkers(BuildContext context)
