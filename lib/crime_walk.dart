@@ -347,13 +347,18 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
 
   Marker createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
   {
+    CrimeWalk? currentWalk = model.userSettings.currentWalk;
     return Marker(
       point: LatLng(latitude, longitude),
       width: 40,
       height: 40,
       child: GestureDetector(
         onTap: () {
-          buildMenu(context, model, walk);
+          if (currentWalk != null) {
+            buildMenu(context, model, walk);
+
+            appStateKey.currentState!.getCoordinates(latitude.toString(), longitude.toString());
+          }
         },
         child: Icon(
           Icons.location_pin,
@@ -441,6 +446,8 @@ class CrimeWalkModel extends ChangeNotifier
     userSettings.locationsReached.clear();
 
     update();
+
+    appStateKey.currentState!.getCoordinates("-1", "-1");
   }
 
   void startWalk(CrimeWalk walk)

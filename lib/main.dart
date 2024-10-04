@@ -24,6 +24,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // for formatting the date
 
+GlobalKey <MyAppState> appStateKey = GlobalKey<MyAppState>();
+
 Future<void> main() async {
   try {
     //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
@@ -33,8 +35,8 @@ Future<void> main() async {
     debugPrint('Failed to initalizeApp');
   }
 
-  runApp(const MaterialApp(
-    home: MyApp(),
+  runApp(MaterialApp(
+    home: MyApp(key: appStateKey,),
     ));
 }
 
@@ -42,10 +44,10 @@ class MyApp extends StatefulWidget{
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   List listOfPoints = []; //List of points on the map to map out route
   List<LatLng> points = []; //List of points to create routes between listOfPoints
   late MapController mapController; // Controller for map
@@ -57,12 +59,15 @@ class _MyAppState extends State<MyApp> {
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates(String lat1, String long1, String lat2, String long2) async {
+  getCoordinates(String lat, String long) async {
     String comma = ", ";
-    String point1 = long1 + comma + lat1;
-    String point2 = long2 + comma + lat2;
+    String point1 = long + comma + lat;
+    String point2 = "147.325439, -42.90395";
 
-    var response = await http.get(getRouteUrl(point1, point2));
+    if (lat == "-1" && long == "-1") {
+      points = [];
+    } else {
+      var response = await http.get(getRouteUrl(point1, point2));
 
     setState(() {
       if(response.statusCode == 200){
@@ -72,6 +77,7 @@ class _MyAppState extends State<MyApp> {
         focusOnRoute(points); // Auto-focus on the route after data is loaded
       }
     });
+    }
   }
 
 
