@@ -28,7 +28,7 @@ class UserSettings {
 
   CrimeWalkLocation getNextLocation()
   {
-    return locationsReached.firstWhere((location) => !currentWalk!.locations.contains(location));
+    return locationsReached.isNotEmpty ? locationsReached.firstWhere((location) => !currentWalk!.locations.contains(location)) : currentWalk!.locations.first;
   }
 
   void checkpointReached()
