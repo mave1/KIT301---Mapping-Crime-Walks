@@ -346,13 +346,18 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
 
   Marker createPOI(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool filtered)
   {
+    CrimeWalk? currentWalk = userSettings.currentWalk;
     return Marker(
       point: LatLng(latitude, longitude),
       width: 40,
       height: 40,
       child: GestureDetector(
         onTap: () {
-          userSettings.currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
+          if (currentWalk != null) {
+            currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
+
+            appStateKey.currentState!.getCoordinates(latitude.toString(), longitude.toString());
+          }
         },
         child: Icon(
           Icons.location_pin,
@@ -430,6 +435,36 @@ class CrimeWalkModel extends ChangeNotifier
     crimeWalks.last.isCompleted = true;
 
     resetFilter();
+  }
+
+  void cancelWalk()
+  {
+    userSettings.currentWalk = null;
+    userSettings.locationsReached.clear();
+
+    update();
+
+    appStateKey.currentState!.getCoordinates("-1", "-1");
+  }
+
+  void startWalk(CrimeWalk walk)
+  {
+    userSettings.currentWalk = walk;
+    userSettings.walkStarted = DateTime.now();
+    userSettings.distanceWalked = 0;
+    userSettings.checkpointsHit = 0;
+
+    // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
+    // TODO: MAYBE LET OTHER POINT AS START?
+
+    // ONCE REACHES POINT DISPLAY CHECKPOINT INFO AND GENERATE UPDATING ROUTE FROM CURRENT LOCATION TO NEXT POINT
+    // REPEAT UNTIL DONE
+
+    // ONCE DONE SHOW DIFFERENT SCREEN?
+
+    // userSettings.finishWalk();
+
+    update();
   }
 
   void generateMarkers(BuildContext context)
