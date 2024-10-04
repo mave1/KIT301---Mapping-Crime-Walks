@@ -353,9 +353,9 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
       height: 40,
       child: GestureDetector(
         onTap: () {
-          if (currentWalk != null) {
-            currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
+          currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
 
+          if (currentWalk != null) {
             appStateKey.currentState!.getCoordinates(latitude.toString(), longitude.toString());
           }
         },
