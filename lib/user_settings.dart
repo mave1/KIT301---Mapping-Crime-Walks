@@ -1,4 +1,5 @@
 import 'package:crimewalksapp/crime_walk.dart';
+import 'package:crimewalksapp/main.dart';
 
 class UserSettings {
   CrimeWalk? currentWalk;
@@ -47,6 +48,8 @@ class UserSettings {
     locationsReached.clear();
 
     model?.update();
+
+    appStateKey.currentState!.getCoordinates("-1", "-1");
   }
 
   void startWalk(CrimeWalk walk, CrimeWalkModel? model)

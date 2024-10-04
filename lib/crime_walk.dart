@@ -437,16 +437,6 @@ class CrimeWalkModel extends ChangeNotifier
     resetFilter();
   }
 
-  void cancelWalk()
-  {
-    userSettings.currentWalk = null;
-    userSettings.locationsReached.clear();
-
-    update();
-
-    appStateKey.currentState!.getCoordinates("-1", "-1");
-  }
-
   void startWalk(CrimeWalk walk)
   {
     userSettings.currentWalk = walk;
