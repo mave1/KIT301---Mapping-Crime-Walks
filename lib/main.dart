@@ -57,33 +57,34 @@ class MyAppState extends State<MyApp> {
   String currentLatString = ""; //User's current location in string form - latitude
   String currentLongString = ""; //User's current location in string form - Longitude
   Position? _position; //Position object to store user's current location
+  late CrimeWalkModel model;
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates(String lat, String long) async {
-    String comma = ", ";
-    String point1 = long + comma + lat;
-    String point2 = "147.325439, -42.90395";
-
+  Future<void> getCoordinates(String lat, String long) async {
     if (lat == "-1" && long == "-1") {
-      points = [];
+      setState(() {
+        points = [];
+      });
     } else {
-      var response = await http.get(getRouteUrl(point1, point2));
+      String toReach = "$long, $lat";
 
-    setState(() {
-      if(response.statusCode == 200){
-        var data = jsonDecode(response.body);
-        listOfPoints = data['features'][0]['geometry']['coordinates'];
-        points = listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList();
-        focusOnRoute(points); // Auto-focus on the route after data is loaded
-      }
-    });
+      http.get(getRouteUrl("$currentLongString, $currentLatString", toReach)).then((response) {
+        setState(() {
+          if(response.statusCode == 200){
+            var data = jsonDecode(response.body);
+            listOfPoints = data['features'][0]['geometry']['coordinates'];
+            points = [LatLng(currentLat, currentLong), ...listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList()];
+            // focusOnRoute(points); // Auto-focus on the route after data is loaded
+          }
+        });
+      });
     }
   }
 
 
   //function to retrieve the user's current location
-  void _getCurrentLocation() async {
+  Future<void> _getCurrentLocation() async {
     Position position = await _determinePosition(); //gather the user's current location
 
     //extract the logitude and latitude from the user's current position
@@ -135,40 +136,48 @@ class MyAppState extends State<MyApp> {
   void initLocation() {
     const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 100,
+      distanceFilter: 5,
     );
 
     //opens a stream to listen to changes in the user's current location
     StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
-      locationSettings: locationSettings).listen((Position? position) {
-        setState(() {
-          var beforeUpdate = LatLng(currentLat, currentLong);
+      locationSettings: locationSettings).listen((Position? position) async {
+        var beforeUpdate = LatLng(currentLat, currentLong);
 
-          _getCurrentLocation();
-
-          if (userSettings.currentWalk != null && !userSettings.currentWalk!.isCompleted)
-          {
-            // checkpoint to reach
-            CrimeWalkLocation toReach = userSettings.getNextLocation();
-
-            double distTravelled = geologicalDistance(LatLng(currentLat, currentLong), LatLng(toReach.latitude, toReach.longitude));
-            userSettings.distanceWalked += geologicalDistance(beforeUpdate, LatLng(currentLat, currentLong));
-
-            // generate route from currentLocation to toReach.
-            if (toReach.next != null && true) // replace true with atomic variable that determines if a route is being calculated async (i.e. hasn't returned yet).
-            {
-              // generate route to seamlessly transition from toReach -> toReach.next when reaching current checkpoint
-            }
-
-            if (distTravelled <= 5.0)
-            {
-              userSettings.checkpointReached();
-            }
-
-            // update route
-          }
+        _getCurrentLocation().then((_) {
+          setState(() {
+            updateRoute(beforeUpdate);
+          });
         });
-      });
+      }
+    );
+  }
+
+  void updateRoute(LatLng? beforeUpdate)
+  {
+    if (userSettings.currentWalk != null && !userSettings.currentWalk!.isCompleted)
+    {
+      // checkpoint to reach
+      CrimeWalkLocation? toReach = userSettings.getNextLocation();
+
+      double distToPoint = geologicalDistance(LatLng(currentLat, currentLong), LatLng(toReach!.latitude, toReach.longitude));
+      if (beforeUpdate != null)
+      {
+        userSettings.distanceWalked += geologicalDistance(beforeUpdate, LatLng(currentLat, currentLong));
+      }
+
+      if (distToPoint <= 30.0)
+      {
+        userSettings.checkpointReached(context, model);
+      }
+
+      // get this again in case the next checkpoint has been reached.
+      toReach = userSettings.getNextLocation();
+      if (toReach != null)
+      {
+        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString());
+      }
+    }
   }
 
   @override
@@ -194,7 +203,10 @@ class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => CrimeWalkModel(),
+      create: (context) {
+        model = CrimeWalkModel();
+        return model;
+      },
       child: Scaffold(
         body: Stack(
             children: [
@@ -211,7 +223,7 @@ class MyAppState extends State<MyApp> {
                         children: [
                           openStreetMapTileLayer, //input map
                           MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
-                          if(points.isNotEmpty)  //checking to see if val points is not empty so errors aren't thrown
+                          if(points.isNotEmpty && userSettings.currentWalk != null && !userSettings.currentWalk!.isCompleted)  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
                               polylines: [
                                 Polyline(
@@ -221,6 +233,20 @@ class MyAppState extends State<MyApp> {
                                 )
                               ],
                             ),
+                          // TODO: REMOVE
+                          // TODO: REMOVE
+                          // TODO: REMOVE
+                          Consumer<CrimeWalkModel>(builder: (context, model2, _)
+                          {
+                            var circles = <CircleMarker>[];
+
+                            for (var marker in model2.markers)
+                            {
+                              circles.add(CircleMarker(point: marker.point, radius: 30, useRadiusInMeter: true, color: Colors.black87));
+                            }
+
+                            return CircleLayer(circles: circles);
+                          }),
                           copyrightNotice, // input copyright
                         ],
                       ),
