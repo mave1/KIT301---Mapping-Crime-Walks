@@ -1,12 +1,22 @@
 import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
+import 'package:crimewalksapp/crime_walk.dart';
 
 const String baseUrl = 'https://api.openrouteservice.org/v2/directions/foot-walking';
+const String drivingUrl = 'https://api.openrouteservice.org/v2/directions/driving-car';
+const String cyclingUrl = 'https://api.openrouteservice.org/v2/directions/cycling-regular';
 const String apiKey = '5b3ce3597851110001cf624869c9a86867464b2e89cd132a9bc84986';
 
-getRouteUrl(String startPoint, String endPoint) {
-  return Uri.parse('$baseUrl?api_key=$apiKey&start=$startPoint&end=$endPoint');
+getRouteUrl(String startPoint, String endPoint, TransportType type) {
+
+  if (type == TransportType.CYCLE) {
+    return Uri.parse('$cyclingUrl?api_key=$apiKey&start=$startPoint&end=$endPoint');
+  } else if (type == TransportType.CAR) {
+    return Uri.parse('$drivingUrl?api_key=$apiKey&start=$startPoint&end=$endPoint');
+  } else {
+    return Uri.parse('$baseUrl?api_key=$apiKey&start=$startPoint&end=$endPoint');
+  }
 }
 
 double geologicalDistance(LatLng loc1, LatLng loc2)

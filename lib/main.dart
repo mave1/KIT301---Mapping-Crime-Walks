@@ -60,15 +60,17 @@ class MyAppState extends State<MyApp> {
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
-  getCoordinates(String lat, String long) async {
+  getCoordinates(String lat, String long, TransportType type) async {
     String comma = ", ";
     String point1 = long + comma + lat;
     String point2 = "147.325439, -42.90395";
 
     if (lat == "-1" && long == "-1") {
-      points = [];
+      setState(() {
+        points = [];
+      });      
     } else {
-      var response = await http.get(getRouteUrl(point1, point2));
+      var response = await http.get(getRouteUrl(point1, point2, type));
 
     setState(() {
       if(response.statusCode == 200){

@@ -117,7 +117,7 @@ enum Location { ALL, HOBART, LAUNCESTON }
 // All possible difficulty levels for the walk and a default ALL value that is used for filtering
 enum Difficulty { ALL, EASY, MEDIUM, HARD }
 // All possible types of transport required for participating in the crime walk and a default ALL value that is used for filtering
-enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR }
+enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR, CYCLE}
 
 class CrimeWalk {
   CrimeWalk({
@@ -356,7 +356,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
           currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
 
           if (currentWalk != null) {
-            appStateKey.currentState!.getCoordinates(latitude.toString(), longitude.toString());
+            appStateKey.currentState!.getCoordinates(latitude.toString(), longitude.toString(), walk.transportType);
           }
         },
         child: Icon(
