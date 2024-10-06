@@ -101,7 +101,7 @@ class UserSettings {
       currentWalk!.isCompleted = true;
       walkEnded = DateTime.now();
 
-      appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL);
+      appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL, false);
       // Let user see these stats.
       // currentWalk = null;
       // locationsReached.clear();

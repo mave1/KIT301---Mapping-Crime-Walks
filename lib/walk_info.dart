@@ -289,10 +289,10 @@ void showTransportType(BuildContext context, CrimeWalk walk) {
                                   case TravelMode.CAR:
                                     selectedModeRoute = TransportType.CAR;
                                   default:
-                                    selectedModeRoute = TransportType.WALK;;
+                                    selectedModeRoute = TransportType.WALK;
                                   }
 
-                              appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute);
+                              appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute, false);
                               Navigator.pop(context); // Close the popup after marking as completed
                             },
                             child: const Text("Select")

@@ -198,7 +198,7 @@ class MyAppState extends State<MyApp> {
       toReach = userSettings.getNextLocation();
       if (toReach != null)
       {
-        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString(), true);
+        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString(), userSettings.currentWalk!.transportType, true);
       }
     }
   }
