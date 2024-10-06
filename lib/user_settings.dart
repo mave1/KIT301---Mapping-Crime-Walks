@@ -73,9 +73,11 @@ class UserSettings {
     currentWalk = null;
     locationsReached.clear();
 
+    // TODO: ask maeve
+    // _finishWalk();
     model?.update();
 
-    appStateKey.currentState!.getCoordinates("-1", "-1", false);
+    appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL, false);
   }
 
   void startWalk(CrimeWalk walk, CrimeWalkModel? model)
@@ -99,6 +101,7 @@ class UserSettings {
       currentWalk!.isCompleted = true;
       walkEnded = DateTime.now();
 
+      appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL);
       // Let user see these stats.
       // currentWalk = null;
       // locationsReached.clear();

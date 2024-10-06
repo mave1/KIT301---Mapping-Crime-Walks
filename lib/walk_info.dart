@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+enum TravelMode { WALK, CAR, CYCLE }
+TravelMode selectedMode = TravelMode.WALK; // Default mode is walking
+TransportType selectedModeRoute = TransportType.WALK;
 
 class WalkInfo extends StatefulWidget
 {
@@ -120,7 +123,6 @@ class _WalkInfoState extends State<WalkInfo>
     return Consumer<CrimeWalkModel>(
       builder: (context, model, _) {
         showWalkSummary(context, model, widget.walk);
-
         return SizedBox.shrink();
       },
     );
@@ -208,6 +210,29 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                           }
                         },
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (walk.isCompleted == true)
+                            FilledButton.tonal(
+                              onPressed: () {
+                              setState(() {
+                                walk.isCompleted = true;
+                              });
+                            },
+                            child: const Text("Mark Walk as Incomplete")
+                            ),
+                          if (walk.isCompleted != true) 
+                            FilledButton(
+                              onPressed: () {
+                              setState(() {
+                                walk.isCompleted = true;
+                              });
+                            },
+                            child: const Text("Mark Walk as Complete")
+                            ),
+                        ]
+                      ),
                   ],
                 ),
               ),
@@ -216,6 +241,86 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
         );
       }
   );
+}
+
+void showTransportType(BuildContext context, CrimeWalk walk) {
+  showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Select Travel Mode',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    DropdownButton<TravelMode>(
+                      value: selectedMode,
+                      onChanged: (TravelMode? newValue) {
+                        setState(() {
+                          selectedMode = newValue!;
+                        });
+                      },
+                      items: TravelMode.values.map((TravelMode mode) {
+                        return DropdownMenuItem<TravelMode>(
+                          value: mode,
+                          child: Text(modeToString(mode)),
+                        );
+                      }).toList(),
+                    ),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FilledButton(
+                            onPressed: () {
+                                switch (selectedMode) {
+                                  case TravelMode.WALK:
+                                    selectedModeRoute = TransportType.WALK;
+                                  case TravelMode.CYCLE:
+                                    selectedModeRoute = TransportType.CYCLE;
+                                  case TravelMode.CAR:
+                                    selectedModeRoute = TransportType.CAR;
+                                  default:
+                                    selectedModeRoute = TransportType.WALK;;
+                                  }
+
+                              appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute);
+                              Navigator.pop(context); // Close the popup after marking as completed
+                            },
+                            child: const Text("Select")
+                          ),
+                        ]
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }
+  );
+}
+
+// Helper function to convert mode enum to string
+String modeToString(TravelMode mode) {
+  switch (mode) {
+    case TravelMode.WALK:
+      return 'Walking';
+    case TravelMode.CYCLE:
+      return 'Cycling';
+    case TravelMode.CAR:
+      return 'Driving';
+    default:
+      return '';
+    }
 }
 
 Future<String> _getImageUrl(String gsUrl) async {
