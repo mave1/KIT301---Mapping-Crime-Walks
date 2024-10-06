@@ -57,20 +57,23 @@ class MyAppState extends State<MyApp> {
   String currentLatString = ""; //User's current location in string form - latitude
   String currentLongString = ""; //User's current location in string form - Longitude
   Position? _position; //Position object to store user's current location
+  final LocationSettings locationSettings = const LocationSettings(
+                          accuracy: LocationAccuracy.high,
+                          distanceFilter: 100,);
 
   //function to consume the openrouteservice API
   //TODO: have function take in data to then input into getRouteUrl
   getCoordinates(String lat, String long, TransportType type) async {
     String comma = ", ";
-    String point1 = long + comma + lat;
-    String point2 = "147.325439, -42.90395";
+    String point = long + comma + lat;
+    String currentPoint = currentLongString + comma + currentLatString;
 
     if (lat == "-1" && long == "-1") {
       setState(() {
         points = [];
       });      
     } else {
-      var response = await http.get(getRouteUrl(point1, point2, type));
+      var response = await http.get(getRouteUrl(point, currentPoint, type));
 
     setState(() {
       if(response.statusCode == 200){
@@ -83,15 +86,12 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-
   //function to retrieve the user's current location
   void _getCurrentLocation() async {
-    Position position = await _determinePosition(); //gather the user's current location
+    _position = await _determinePosition(); //gather the user's current location
 
     //extract the logitude and latitude from the user's current position
     setState(() {
-      _position = position;
-
       currentLat = _position!.latitude; //user's current latitude
       currentLong = _position!.longitude; //user's current longitude
       currentLatString = currentLat.toString();
@@ -99,47 +99,45 @@ class MyAppState extends State<MyApp> {
     });
   }
 
-  //a function to ask location services permissions and await the user's current location
   Future<Position> _determinePosition() async {
-    bool serviceEnabled; //if the location services are enabled
-    LocationPermission permission; //user's permission given to location services
+    bool serviceEnabled;
+    LocationPermission permission;
 
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       // Location services are not enabled don't continue
-      // accessing the position and request users of the
+      // accessing the position and request users of the 
       // App to enable the location services.
       return Future.error('Location services are disabled.');
     }
 
-    //if permissions are denied, do not collect the user's current location thi time but still ask next time the app loads.
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied'); //return error message
+      // Permissions are denied, next time you could try
+      // requesting permissions again (this is also where
+      // Android's shouldShowRequestPermissionRationale 
+      // returned true. According to Android guidelines
+      // your App should show an explanatory UI now.
+        return Future.error('Location permissions are denied');
       }
     }
-
-    // Permissions are denied forever, handle appropriately - never ask for permission again.
+  
     if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately. 
       return Future.error(
-        'Location permissions are permanently denied, we cannot request permissions.'); //return error message
-    }
+        'Location permissions are permanently denied, we cannot request permissions.');
+    } 
 
-      //store and return the user's current location if the proper permissions are given
-      Position current = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      return current;
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    return await Geolocator.getCurrentPosition(locationSettings: locationSettings);
   }
 
   //instantiate the user's location with high accuracy
   void initLocation() {
-    const LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 100,
-    );
-
     //opens a stream to listen to changes in the user's current location
     StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
       locationSettings: locationSettings).listen((Position? position) {
