@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -59,26 +60,48 @@ class MyAppState extends State<MyApp> {
   Position? _position; //Position object to store user's current location
   late CrimeWalkModel model;
 
+  // Store when requests are made so old routes don't get used.
+  HashMap<String, DateTime> requestSent = HashMap<String, DateTime>();
+  DateTime pointsUpdated = DateTime.now();
+
   //function to consume the openrouteservice API
+  // check is used if you want to make sure that the generated route still points to the correct checkpoint
   //TODO: have function take in data to then input into getRouteUrl
-  Future<void> getCoordinates(String lat, String long) async {
+  Future<void> getCoordinates(String lat, String long, bool check) async {
     if (lat == "-1" && long == "-1") {
       setState(() {
         points = [];
+        pointsUpdated = DateTime.now();
       });
     } else {
-      String toReach = "$long, $lat";
+      CrimeWalkLocation? toReach = userSettings.getNextLocation();
 
-      http.get(getRouteUrl("$currentLongString, $currentLatString", toReach)).then((response) {
+      var url = getRouteUrl("$currentLongString, $currentLatString", "$long, $lat");
+      requestSent[url.toString()] = DateTime.now();
+
+      http.get(url).then((response) {
         setState(() {
-          if(response.statusCode == 200){
+          if(response.statusCode == 200) {
             var data = jsonDecode(response.body);
             listOfPoints = data['features'][0]['geometry']['coordinates'];
-            points = [LatLng(currentLat, currentLong), ...listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList()];
+
+            if (!check || (toReach != null && toReach.latitude.toString() == lat && toReach.longitude.toString() == long))
+            {
+              String? responseUrl = response.request?.url.toString();
+
+              if (requestSent[responseUrl]?.isAfter(pointsUpdated) == true)
+              {
+                points = listOfPoints.map((e) => LatLng(e[1].toDouble(), e[0].toDouble())).toList();
+                pointsUpdated = requestSent[responseUrl]!;
+
+                requestSent.remove(responseUrl);
+              }
+            }
+
             // focusOnRoute(points); // Auto-focus on the route after data is loaded
           }
         });
-      });
+      }).catchError((error) {});
     }
   }
 
@@ -155,7 +178,7 @@ class MyAppState extends State<MyApp> {
 
   void updateRoute(LatLng? beforeUpdate)
   {
-    if (userSettings.currentWalk != null && !userSettings.currentWalk!.isCompleted)
+    if (userSettings.currentWalk != null && !userSettings.isAtEndOfWalk())
     {
       // checkpoint to reach
       CrimeWalkLocation? toReach = userSettings.getNextLocation();
@@ -175,7 +198,7 @@ class MyAppState extends State<MyApp> {
       toReach = userSettings.getNextLocation();
       if (toReach != null)
       {
-        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString());
+        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString(), true);
       }
     }
   }
@@ -222,17 +245,6 @@ class MyAppState extends State<MyApp> {
                         ),
                         children: [
                           openStreetMapTileLayer, //input map
-                          MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
-                          if(points.isNotEmpty && userSettings.currentWalk != null && !userSettings.currentWalk!.isCompleted)  //checking to see if val points is not empty so errors aren't thrown
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                    points: points,
-                                    color: Colors.red,
-                                    strokeWidth: 5
-                                )
-                              ],
-                            ),
                           // TODO: REMOVE
                           // TODO: REMOVE
                           // TODO: REMOVE
@@ -247,6 +259,17 @@ class MyAppState extends State<MyApp> {
 
                             return CircleLayer(circles: circles);
                           }),
+                          MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
+                          if(points.isNotEmpty && userSettings.currentWalk != null && !userSettings.isAtEndOfWalk())  //checking to see if val points is not empty so errors aren't thrown
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                    points: points,
+                                    color: Colors.red,
+                                    strokeWidth: 5
+                                )
+                              ],
+                            ),
                           copyrightNotice, // input copyright
                         ],
                       ),

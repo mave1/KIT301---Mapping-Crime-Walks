@@ -314,7 +314,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
-                        FilledButton.icon(onPressed: userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
+                        FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
                         FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
                       ]
                   ),

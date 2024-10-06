@@ -33,6 +33,11 @@ class UserSettings {
     return currentWalk!.locations.length != locationsReached.length ? currentWalk!.locations.firstWhere((location) => !locationsReached.contains(location)) : null;
   }
 
+  bool isAtEndOfWalk()
+  {
+    return currentWalk!.locations.length == locationsReached.length;
+  }
+
   void setActiveCheckpoint(CrimeWalkLocation location) {
     if (currentWalk != null && !currentWalk!.isCompleted)
     {
@@ -70,13 +75,12 @@ class UserSettings {
 
     model?.update();
 
-    appStateKey.currentState!.getCoordinates("-1", "-1");
+    appStateKey.currentState!.getCoordinates("-1", "-1", false);
   }
 
   void startWalk(CrimeWalk walk, CrimeWalkModel? model)
   {
     currentWalk = walk;
-    currentWalk!.isCompleted = false;
     walkStarted = DateTime.now();
     locationsReached = [];
     walkEnded = null;
