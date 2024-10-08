@@ -100,8 +100,6 @@ class MyAppState extends State<MyApp> {
                 requestSent.remove(responseUrl);
               }
             }
-
-            // focusOnRoute(points); // Auto-focus on the route after data is loaded
           }
         });
       }).catchError((error) {});
@@ -155,7 +153,7 @@ class MyAppState extends State<MyApp> {
 
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
-    return await Geolocator.getCurrentPosition(locationSettings: locationSettings);
+    return await Geolocator.getCurrentPosition(desiredAccuracy: locationSettings.accuracy);
   }
 
   //instantiate the user's location with high accuracy
@@ -187,7 +185,7 @@ class MyAppState extends State<MyApp> {
         userSettings.distanceWalked += geologicalDistance(beforeUpdate, LatLng(currentLat, currentLong));
       }
 
-      if (distToPoint <= 30.0)
+      if (distToPoint <= (userSettings.currentWalk!.transportType == TransportType.CAR ? 100.0 : 30.0))
       {
         userSettings.checkpointReached(context, model);
       }
@@ -203,8 +201,7 @@ class MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _getCurrentLocation(); //collect the user's current location
-    initLocation();
+    _getCurrentLocation().then((_) => initLocation()); //collect the user's current location
     mapController = MapController();
     super.initState();
   }
@@ -216,8 +213,7 @@ class MyAppState extends State<MyApp> {
       double minLon = routePoints.map((p) => p.longitude).reduce(min);
       double maxLon = routePoints.map((p) => p.longitude).reduce(max);
       LatLngBounds bounds = LatLngBounds(LatLng(minLat, minLon), LatLng(maxLat, maxLon));
-      //mapController.fitCamera(CameraFit.bounds(bounds: bounds), padding: EdgeInsets.all(50.0));
-      mapController.fitCamera(CameraFit.bounds(bounds: bounds));
+      mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(100.0)));
     }
   }
 
@@ -244,19 +240,17 @@ class MyAppState extends State<MyApp> {
                         children: [
                           openStreetMapTileLayer, //input map
                           // TODO: REMOVE
-                          // TODO: REMOVE
-                          // TODO: REMOVE
-                          Consumer<CrimeWalkModel>(builder: (context, model2, _)
-                          {
-                            var circles = <CircleMarker>[];
-
-                            for (var marker in model2.markers)
-                            {
-                              circles.add(CircleMarker(point: marker.point, radius: 30, useRadiusInMeter: true, color: Colors.black87));
-                            }
-
-                            return CircleLayer(circles: circles);
-                          }),
+                          // Consumer<CrimeWalkModel>(builder: (context, model2, _)
+                          // {
+                          //   var circles = <CircleMarker>[];
+                          //
+                          //   for (var marker in model2.markers)
+                          //   {
+                          //     circles.add(CircleMarker(point: marker.point, radius: 100, useRadiusInMeter: true, color: Colors.black87));
+                          //   }
+                          //
+                          //   return CircleLayer(circles: circles);
+                          // }),
                           MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
                           if(points.isNotEmpty && userSettings.currentWalk != null && !userSettings.isAtEndOfWalk())  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
