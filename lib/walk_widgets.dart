@@ -22,8 +22,7 @@ class _StartWalkButtonState extends State<StartWalkButton> with SingleTickerProv
     return FilledButton(
       onPressed: () {
         setState(() {
-          userSettings.startWalk(widget.walk, widget.model);
-          showTransportType(context, widget.walk);
+          showTransportType(context, widget.walk, widget.model);
         });
 
         widget.callback();

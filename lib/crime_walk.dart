@@ -115,7 +115,7 @@ enum Location { ALL, HOBART, LAUNCESTON }
 // All possible difficulty levels for the walk and a default ALL value that is used for filtering
 enum Difficulty { ALL, EASY, MEDIUM, HARD }
 // All possible types of transport required for participating in the crime walk and a default ALL value that is used for filtering
-enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR, CYCLE}
+enum TransportType { ALL, WALK, WHEELCHAIR_ACCESS, CAR, CYCLE }
 
 class CrimeWalk {
   CrimeWalk({
@@ -143,6 +143,7 @@ class CrimeWalk {
   TransportType transportType;
   LinkedList<CrimeWalkLocation> locations;
   bool isCompleted = false;
+  bool isMarkerMenuOpen = false;
   String? imageUrl;
 
 
@@ -239,91 +240,106 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
   String description;
 
   //Optional for if an image exists or not
-  String? imageUrl; 
+  String? imageUrl;
+  Widget? imageCache;
 
-  // The menu that appears when you click on a marker.
-  Future buildMenu(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
+  Future createMenu(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool fromButton)
   {
+    if (walk.isMarkerMenuOpen && !fromButton)
+    {
+      Navigator.pop(context);
+    }
+
+    walk.isMarkerMenuOpen = true;
+
     return showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (BuildContext context) => StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) => Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "${walk.name} #${index + 1}",
-                    style: const TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "${walk.name} #${index + 1}",
+                  style: const TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const Divider(), // Add a divider between fields
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
+                ),
+                const Divider(), // Add a divider between fields
+                ConstrainedBox(
+                  constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.35
-                    ),
-                    child: Scrollbar(
-                      child: SingleChildScrollView(
-                        child: Text(
-                          description,
-                          style: const TextStyle(
-                            fontSize: 14.0,
-                          ),
+                  ),
+                  child: Scrollbar(
+                    child: SingleChildScrollView(
+                      child: Text(
+                        description,
+                        style: const TextStyle(
+                          fontSize: 14.0,
                         ),
                       ),
                     ),
                   ),
-                  // testing images
-                  const Divider(), // Add a divider between fields
-                  if (imageUrl != null)
-                    FutureBuilder<String>(
-                      future: _getImageUrl(imageUrl!),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.network(snapshot.data!),
-                          );
-                        } else if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else {
-                          return const Text('Failed to load image');
-                        }
-                      },
-                    ),
-                  //end of images test
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
-                          FilledButton(onPressed: onPressed(context, model, walk, walk.locations.first), child: const Text("First Marker")),
-                          FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
-                        ]
-                    ),
+                ),
+                // testing images
+                const Divider(), // Add a divider between fields
+                if (imageUrl != null)
+                  imageCache == null ? FutureBuilder<String>(
+                    future: _getImageUrl(imageUrl!),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                        imageCache = Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image.network(snapshot.data!),
+                        );
+
+                        return imageCache!;
+                      } else if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else {
+                        return const Text('Failed to load image');
+                      }
+                    },
+                  ) : imageCache!,
+                //end of images test
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
+                        FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
+                        FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
+                      ]
                   ),
-                  // Only show the start walk button if it is the start of the walk
-                  previous == null ? Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
+                ),
+                // Only show the start walk button if it is the start of the walk
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
                             child: userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
-                          )
-                        ]
-                    ),
-                  ) : const SizedBox(),
-                ],
-              ),
+                        )
+                      ]
+                  ),
+                ),
+              ],
             ),
+          ),
         )
-    );
+    ).whenComplete(() => walk.isMarkerMenuOpen = false );
+  }
+
+  // The menu that appears when you click on a marker.
+  Future buildMenu(BuildContext context, CrimeWalkModel model, CrimeWalk walk, bool fromButton)
+  {
+    return createMenu(context, model, walk, fromButton);
   }
 
   Future<String> _getImageUrl(String gsUrl) async {
@@ -338,7 +354,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
       // Close the previous menu so they don't build up.
       Navigator.pop(context);
 
-      return element.buildMenu(context, model, walk);
+      return element.buildMenu(context, model, walk, true);
     } : null;
   }
 
@@ -351,11 +367,7 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
       height: 40,
       child: GestureDetector(
         onTap: () {
-          currentWalk != null ? buildMenu(context, model, walk) : showWalkSummary(context, model, walk);
-
-          if (currentWalk != null) {
-            appStateKey.currentState!.getCoordinates(latitude.toString(), longitude.toString(), walk.transportType);
-          }
+          currentWalk != null ? buildMenu(context, model, walk, false) : showWalkSummary(context, model, walk);
         },
         child: Icon(
           Icons.location_pin,

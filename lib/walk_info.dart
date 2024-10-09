@@ -3,6 +3,7 @@ import 'package:crimewalksapp/filtered_list.dart';
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/walk_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -245,7 +246,7 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
   );
 }
 
-void showTransportType(BuildContext context, CrimeWalk walk) {
+void showTransportType(BuildContext context, CrimeWalk walk, CrimeWalkModel model) {
   showModalBottomSheet(
     context: context,
       builder: (BuildContext context) {
@@ -291,11 +292,14 @@ void showTransportType(BuildContext context, CrimeWalk walk) {
                                   case TravelMode.CAR:
                                     selectedModeRoute = TransportType.CAR;
                                   default:
-                                    selectedModeRoute = TransportType.WALK; {}
+                                    selectedModeRoute = TransportType.WALK;
                                   }
 
-                              appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute);
+                              userSettings.startWalk(walk, model);
+                              appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute, false);
                               Navigator.pop(context); // Close the popup after marking as completed
+
+                              appStateKey.currentState!.focusOnRoute([LatLng(appStateKey.currentState!.currentLat, appStateKey.currentState!.currentLong), LatLng(walk.locations.first.latitude, walk.locations.first.longitude)]);
                             },
                             child: const Text("Select")
                           ),

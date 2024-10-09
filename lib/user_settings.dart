@@ -1,5 +1,6 @@
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
+import 'package:flutter/cupertino.dart';
 
 class UserSettings {
   CrimeWalk? currentWalk;
@@ -11,11 +12,12 @@ class UserSettings {
   int checkpointsHit = 0; // TODO:
   double distanceWalked = 0.0; // TODO:
   var walkStarted = DateTime.now();
+  DateTime? walkEnded;
 
   String getTimeElapsed()
   {
     // var split = timeElapsed.toString().split(RegExp(':'));
-    var diff = DateTime.now().difference(walkStarted);
+    var diff = (walkEnded ?? DateTime.now()).difference(walkStarted);
     var split = diff.toString().split(RegExp(':'));
 
     return '${split[0]}:${split[1]}';
@@ -26,14 +28,38 @@ class UserSettings {
 
   List<CrimeWalk> bookmarkedWalks = [];
 
-  CrimeWalkLocation getNextLocation()
+  CrimeWalkLocation? getNextLocation()
   {
-    return locationsReached.isNotEmpty ? locationsReached.firstWhere((location) => !currentWalk!.locations.contains(location)) : currentWalk!.locations.first;
+    return currentWalk!.locations.length != locationsReached.length ? currentWalk!.locations.firstWhere((location) => !locationsReached.contains(location)) : null;
   }
 
-  void checkpointReached()
+  bool isAtEndOfWalk()
   {
-    locationsReached.add(getNextLocation());
+    return currentWalk!.locations.length == locationsReached.length;
+  }
+
+  void setActiveCheckpoint(CrimeWalkLocation location) {
+    if (currentWalk != null && !currentWalk!.isCompleted)
+    {
+      locationsReached = [];
+
+      CrimeWalkLocation? previous = location.previous;
+
+      while (previous != null)
+      {
+        locationsReached.add(previous);
+        previous = previous.previous;
+      }
+    }
+  }
+
+  void checkpointReached(BuildContext context, CrimeWalkModel model)
+  {
+    var nextLocation = getNextLocation();
+
+    nextLocation!.createMenu(context, model, currentWalk!, false);
+
+    locationsReached.add(nextLocation);
     checkpointsHit += 1;
 
     if (locationsReached.last.next == null)
@@ -46,27 +72,24 @@ class UserSettings {
   {
     currentWalk = null;
     locationsReached.clear();
-    appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL);
-    _finishWalk();
+
+    // TODO: ask maeve
+    // _finishWalk();
     model?.update();
+
+    appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL, false);
   }
 
   void startWalk(CrimeWalk walk, CrimeWalkModel? model)
   {
     currentWalk = walk;
     walkStarted = DateTime.now();
+    locationsReached = [];
+    walkEnded = null;
     distanceWalked = 0;
     checkpointsHit = 0;
 
-    // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
-    // TODO: MAYBE LET OTHER POINT AS START?
-
-    // ONCE REACHES POINT DISPLAY CHECKPOINT INFO AND GENERATE UPDATING ROUTE FROM CURRENT LOCATION TO NEXT POINT
-    // REPEAT UNTIL DONE
-
-    // ONCE DONE SHOW DIFFERENT SCREEN?
-
-    // userSettings.finishWalk();
+    appStateKey.currentState!.updateRoute(null);
 
     model?.update();
   }
@@ -76,7 +99,9 @@ class UserSettings {
     if (currentWalk != null)
     {
       currentWalk!.isCompleted = true;
-      appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL);
+      walkEnded = DateTime.now();
+
+      appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL, false);
       // Let user see these stats.
       // currentWalk = null;
       // locationsReached.clear();
