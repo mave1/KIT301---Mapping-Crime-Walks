@@ -1,9 +1,7 @@
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/walk_info.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class StartWalkButton extends StatefulWidget
 {

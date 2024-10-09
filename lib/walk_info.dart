@@ -2,7 +2,6 @@ import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/walk_widgets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -27,6 +26,9 @@ class _WalkInfoState extends State<WalkInfo>
   void initState()
   {
     super.initState();
+    print("--------------------------------");
+    print("Walk Info");
+    print("--------------------------------");
   }
 
   Widget _buildSummaryField(String label, String value, bool shouldCapitalize) {
@@ -104,9 +106,9 @@ class _WalkInfoState extends State<WalkInfo>
                               child: Image.network(snapshot.data!),
                             );
                           } else if (snapshot.connectionState == ConnectionState.waiting) {
-                            return CircularProgressIndicator();
+                            return const CircularProgressIndicator();
                           } else {
-                            return Text('Failed to load image');
+                            return const Text('Failed to load image');
                           }
                         },
                       ),
@@ -123,7 +125,7 @@ class _WalkInfoState extends State<WalkInfo>
     return Consumer<CrimeWalkModel>(
       builder: (context, model, _) {
         showWalkSummary(context, model, widget.walk);
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
       },
     );
 
@@ -158,94 +160,94 @@ Widget _buildSummaryField(String label, String value, bool shouldCapitalize) {
 // The menu that appears after clicking on a specific menu item.
 void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk) {
   showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-              child: Container(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Walk Summary',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Walk Summary',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 10.0,),
+                  ),
+                  const SizedBox(height: 10.0,),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
+                        ),
+                      ]
+                  ),
+                  const Divider(), // Add a divider between fields
+                  _buildSummaryField('Name', walk.name.toString(), false),
+                  _buildSummaryField('Description', walk.description.toString(), false),
+                  _buildSummaryField('Walk Completed', walk.isCompleted ? "Yes" : "No", true),
+                  _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Length', walk.length.toStringAsFixed(1), true),
+                  _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Wheelchair Accessible', (walk.transportType == TransportType.CAR || walk.transportType == TransportType.WHEELCHAIR_ACCESS) ? "Yes" : "No", true),
+                  _buildSummaryField('Transport Type', walk.transportType.toString().split('.').last.replaceAll(RegExp('_'), ' '), true),
+                  if (walk.imageUrl != null)
+                    FutureBuilder<String>(
+                      future: _getImageUrl(walk.imageUrl!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.network(snapshot.data!),
+                          );
+                        } else if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else {
+                          return const Text('Failed to load image');
+                        }
+                      },
+                    ),
                     Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: userSettings.currentWalk != walk ? StartWalkButton(model: model, callback: () {setState(() {});}, walk: walk) : CancelWalkButton(model: model, callback: () {setState(() {});})
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (walk.isCompleted == true)
+                          FilledButton.tonal(
+                            onPressed: () {
+                            setState(() {
+                              walk.isCompleted = false;
+                            });
+                          },
+                          child: const Text("Mark Walk as Incomplete")
                           ),
-                        ]
+                        if (walk.isCompleted != true) 
+                          FilledButton(
+                            onPressed: () {
+                            setState(() {
+                              walk.isCompleted = true;
+                            });
+                          },
+                          child: const Text("Mark Walk as Complete")
+                          ),
+                      ]
                     ),
-                    const Divider(), // Add a divider between fields
-                    _buildSummaryField('Name', walk.name.toString(), false),
-                    _buildSummaryField('Description', walk.description.toString(), false),
-                    _buildSummaryField('Walk Completed', walk.isCompleted ? "Yes" : "No", true),
-                    _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
-                    _buildSummaryField('Length', walk.length.toStringAsFixed(1), true),
-                    _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
-                    _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
-                    _buildSummaryField('Wheelchair Accessible', (walk.transportType == TransportType.CAR || walk.transportType == TransportType.WHEELCHAIR_ACCESS) ? "Yes" : "No", true),
-                    _buildSummaryField('Transport Type', walk.transportType.toString().split('.').last.replaceAll(RegExp('_'), ' '), true),
-                    if (walk.imageUrl != null)
-                      FutureBuilder<String>(
-                        future: _getImageUrl(walk.imageUrl!),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Image.network(snapshot.data!),
-                            );
-                          } else if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else {
-                            return const Text('Failed to load image');
-                          }
-                        },
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (walk.isCompleted == true)
-                            FilledButton.tonal(
-                              onPressed: () {
-                              setState(() {
-                                walk.isCompleted = true;
-                              });
-                            },
-                            child: const Text("Mark Walk as Incomplete")
-                            ),
-                          if (walk.isCompleted != true) 
-                            FilledButton(
-                              onPressed: () {
-                              setState(() {
-                                walk.isCompleted = true;
-                              });
-                            },
-                            child: const Text("Mark Walk as Complete")
-                            ),
-                        ]
-                      ),
-                  ],
-                ),
+                ],
               ),
-            );
-          },
-        );
-      }
+            ),
+          );
+        },
+      );
+    }
   );
 }
 
 void showTransportType(BuildContext context, CrimeWalk walk) {
   showModalBottomSheet(
-      context: context,
+    context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -289,7 +291,7 @@ void showTransportType(BuildContext context, CrimeWalk walk) {
                                   case TravelMode.CAR:
                                     selectedModeRoute = TransportType.CAR;
                                   default:
-                                    selectedModeRoute = TransportType.WALK;;
+                                    selectedModeRoute = TransportType.WALK; {}
                                   }
 
                               appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute);

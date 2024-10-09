@@ -102,9 +102,7 @@ import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crimewalksapp/walk_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/main.dart';
-import 'package:crimewalksapp/user_settings.dart';
 import 'package:crimewalksapp/walk_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -291,9 +289,9 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                             child: Image.network(snapshot.data!),
                           );
                         } else if (snapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
+                          return const CircularProgressIndicator();
                         } else {
-                          return Text('Failed to load image');
+                          return const Text('Failed to load image');
                         }
                       },
                     ),

@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:crimewalksapp/api.dart';
 import 'package:crimewalksapp/crime_walk.dart';
 import 'package:crimewalksapp/filtered_list.dart';
@@ -19,10 +15,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // for formatting the date
 
 GlobalKey <MyAppState> appStateKey = GlobalKey<MyAppState>();
 UserSettings userSettings = UserSettings();
@@ -32,13 +26,18 @@ Future<void> main() async {
     //WidgetsFlutterBinding and Firebase.initializeApp ensure app is connected to database
     WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  } catch (e){
-    debugPrint('Failed to initalizeApp');
+  } catch (e) {
+    debugPrint('Failed to initializeApp');
   }
 
-  runApp(MaterialApp(
-    home: MyApp(key: appStateKey,),
-    ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CrimeWalkModel(),
+      child: MaterialApp(
+        home: MyApp(key: appStateKey),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget{

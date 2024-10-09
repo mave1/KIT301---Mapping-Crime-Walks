@@ -1,8 +1,6 @@
-import 'dart:collection';
 
 import 'package:crimewalksapp/main.dart';
 import 'package:crimewalksapp/walk_info.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timer_builder/timer_builder.dart';
@@ -137,9 +135,11 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
 
     animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     animationController.addStatusListener((status) {
-      if (status == AnimationStatus.dismissed) setState(() {
+      if (status == AnimationStatus.dismissed) {
+        setState(() {
         showMenu = false;
       });
+      }
     });
   }
 
