@@ -109,7 +109,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 // All possible crime types and a default ALL value that is used for filtering
-enum CrimeType { ALL, MURDER }
+enum CrimeType { ALL, MURDER, INFANTICIDE, GANGLAND, BUSHRANGING, POISONINGS }
 // All possible locations for a walk and a default ALL value that is used for filtering
 enum Location { ALL, HOBART, LAUNCESTON }
 // All possible difficulty levels for the walk and a default ALL value that is used for filtering

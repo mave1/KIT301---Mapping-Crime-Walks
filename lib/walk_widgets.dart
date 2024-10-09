@@ -27,7 +27,7 @@ class _StartWalkButtonState extends State<StartWalkButton> with SingleTickerProv
 
         widget.callback();
       },
-      child: const Text("Start Walk")
+      child: const Text("Start Tour")
     );
   }
 }
@@ -55,7 +55,7 @@ class _CancelWalkButtonState extends State<CancelWalkButton> with SingleTickerPr
 
         widget.callback();
       },
-      child: const Text("Cancel Walk")
+      child: const Text("Cancel Tour")
     );
   }
 }
