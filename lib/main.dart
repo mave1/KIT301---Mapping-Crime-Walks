@@ -24,6 +24,7 @@ import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // for formatting the date
+import 'package:shared_preferences/shared_preferences.dart';
 
 GlobalKey <MyAppState> appStateKey = GlobalKey<MyAppState>();
 UserSettings userSettings = UserSettings();
@@ -59,6 +60,7 @@ class MyAppState extends State<MyApp> {
   String currentLongString = ""; //User's current location in string form - Longitude
   Position? _position; //Position object to store user's current location
   late CrimeWalkModel model;
+  final keyIsFirstLoaded = 'is_first_loaded';
 
   // Store when requests are made so old routes don't get used.
   HashMap<String, DateTime> requestSent = HashMap<String, DateTime>();
@@ -217,8 +219,37 @@ class MyAppState extends State<MyApp> {
     }
   }
 
+
+  contentWarning(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? isFirstLoaded = prefs.getBool(keyIsFirstLoaded);
+    if (isFirstLoaded == null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // return object of type Dialog
+          return AlertDialog(
+            title: const Text("CONTENT WARNING", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+            content: const Text("The following tours include details about historical crimes. Although graphic details are not included some users may find the specifics about some cases challenging. If you have any concerns, please exit the application immediately.\n\nPlease respect that the cases presented involved real people. This app and the tours contained within should be used for informative and educative purposes.\n\nWhile these crimes are historical and occurred over 50 years ago, in some rural locations local communities are still very aware of the incidents. Please avoid harassing local residents about people involved in the following cases."),
+            actions: <Widget>[
+              FilledButton(
+                child: const Text("I Agree"),
+                onPressed: () {
+                  // Close the dialog
+                  Navigator.of(context).pop();
+                  prefs.setBool(keyIsFirstLoaded, false);
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    Future.delayed(Duration.zero, () => contentWarning(context));
     return ChangeNotifierProvider(
       create: (context) {
         model = CrimeWalkModel();
@@ -239,18 +270,6 @@ class MyAppState extends State<MyApp> {
                         ),
                         children: [
                           openStreetMapTileLayer, //input map
-                          // TODO: REMOVE
-                          // Consumer<CrimeWalkModel>(builder: (context, model2, _)
-                          // {
-                          //   var circles = <CircleMarker>[];
-                          //
-                          //   for (var marker in model2.markers)
-                          //   {
-                          //     circles.add(CircleMarker(point: marker.point, radius: 100, useRadiusInMeter: true, color: Colors.black87));
-                          //   }
-                          //
-                          //   return CircleLayer(circles: circles);
-                          // }),
                           MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
                           if(points.isNotEmpty && userSettings.currentWalk != null && !userSettings.isAtEndOfWalk())  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(

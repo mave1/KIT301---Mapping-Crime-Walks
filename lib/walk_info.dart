@@ -66,7 +66,7 @@ class _WalkInfoState extends State<WalkInfo>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Walk Summary',
+                    'Tour Summary',
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
@@ -81,7 +81,7 @@ class _WalkInfoState extends State<WalkInfo>
                             setState(() {
                               userSettings.startWalk(walk, model);
                             })
-                          } : null, child: const Text('Start Walk')),
+                          } : null, child: const Text('Start Tour')),
                         ),
                       ]
                   ),
@@ -170,7 +170,7 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Walk Summary',
+                      'Tour Summary',
                       style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
@@ -188,7 +188,7 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                     const Divider(), // Add a divider between fields
                     _buildSummaryField('Name', walk.name.toString(), false),
                     _buildSummaryField('Description', walk.description.toString(), false),
-                    _buildSummaryField('Walk Completed', walk.isCompleted ? "Yes" : "No", true),
+                    _buildSummaryField('Tour Completed?', walk.isCompleted ? "Yes" : "No", true),
                     _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
                     _buildSummaryField('Length', walk.length.toStringAsFixed(1), true),
                     _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
@@ -221,7 +221,7 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                                 walk.isCompleted = false;
                               });
                             },
-                            child: const Text("Mark Walk as Incomplete")
+                            child: const Text("Mark Tour as Incomplete")
                             ),
                           if (walk.isCompleted != true) 
                             FilledButton(
@@ -230,7 +230,7 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                                 walk.isCompleted = true;
                               });
                             },
-                            child: const Text("Mark Walk as Complete")
+                            child: const Text("Mark Tour as Complete")
                             ),
                         ]
                       ),
@@ -257,9 +257,9 @@ void showTransportType(BuildContext context, CrimeWalk walk, CrimeWalkModel mode
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Select Travel Mode',
+                      'Select Travel Mode to the Start',
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontSize: 20.0, 
                         fontWeight: FontWeight.bold,
                       ),
                     ),

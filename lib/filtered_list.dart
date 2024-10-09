@@ -81,7 +81,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Statistics of Current Walk',
+                    'Statistics of Current Tour',
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
@@ -97,12 +97,12 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                 setState(() {
                                   onWalk = false; // Update the onWalk variable
                                 });
-                                print("Walk ended");
+                                print("Tour ended");
                                 userSettings.cancelWalk(model);
 
                                 Navigator.pop(context);
                               },
-                              child: const Text('End Walk')
+                              child: const Text('End Tour')
                           ),
                         ),
                       ]
@@ -175,7 +175,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: const Text("Search Walks"),
+          child: const Text("Search Tours"),
           onPressed: () {
             previousWalk = userSettings.currentWalk;
             animateMenuState();
@@ -250,7 +250,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                   children: [
                                     const Padding(
                                       padding: EdgeInsets.symmetric(vertical: 8),
-                                      child: Text("Crime Walks Tasmania",
+                                      child: Text("Crime Tours Tasmania",
                                         style: TextStyle(
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.bold,
@@ -292,7 +292,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                               FilterableFlag(key: difficultyKey, values: Difficulty.values, callback: (){ filterWalks(model); }),
                                               FilterableFlag(key: transportTypeKey, values: TransportType.values, callback: (){ filterWalks(model); }),
                                               ExpansionTile(
-                                                title: const Text("Filter Walk Length"),
+                                                title: const Text("Filter Tour Length"),
                                                 children: [
                                                   RangeSlider(
                                                       min: model.crimeWalks.isNotEmpty ? model.crimeWalks.reduce((a,b) => a.length < b.length ? a : b).length : 0.0,
@@ -311,7 +311,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                                 ]
                                               ),
                                               CheckboxListTile(
-                                                title: const Text("Hide Finished Walks"),
+                                                title: const Text("Hide Finished Tours"),
                                                 value: ignoreCompletedWalks,
                                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                                                 onChanged: (bool? value) {
@@ -432,7 +432,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
               onPressed: () {
                 _showWalkStats(context, model);
               },
-              child: const Text('Walk Stats'),
+              child: const Text('Tour Stats'),
             ),
           ),
       ],
