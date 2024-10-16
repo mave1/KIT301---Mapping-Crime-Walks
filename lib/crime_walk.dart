@@ -1,103 +1,3 @@
-// import 'package:flutter/material.dart';
-
-// enum CrimeType
-// {
-//   ALL
-// }
-
-// enum Length
-// {
-//   ALL
-// }
-
-// enum Location
-// {
-//   ALL,
-//   HOBART,
-//   LAUNCESTON
-// }
-
-// enum Difficulty
-// {
-//   ALL
-// }
-
-// enum TransportType
-// {
-//   ALL,
-//   WALK,
-//   CAR
-// }
-
-// class CrimeWalk
-// {
-//   CrimeWalk({required this.name, required this.description, required this.yearOccurred, required this.crimeType, required this.length, required this.location, required this.difficulty, required this.transportType});
-
-//   String name;
-//   String description;
-//   int yearOccurred;
-//   CrimeType crimeType;
-//   Length length;
-//   Location location;
-//   Difficulty difficulty;
-//   TransportType transportType;
-// }
-
-// class CrimeWalkModel extends ChangeNotifier
-// {
-//   final List<CrimeWalk> crimeWalks = [];
-//   final List<CrimeWalk> filteredWalks = [];
-
-//   CrimeWalkModel()
-//   {
-//     crimeWalks.add(CrimeWalk(name: "The Crime Walk", description: "A walk through the city of Hobart", yearOccurred: 2021, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Drive", description: "A drive through the city of Launceston", yearOccurred: 2000, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Walk 2", description: "A walk through the city of Hobart", yearOccurred: 1980, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Drive 2", description: "A drive through the city of Launceston", yearOccurred: 1990, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Drive 3", description: "A drive through the city of Hobart", yearOccurred: 1500, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Drive 4", description: "A drive through the city of Launceston", yearOccurred: 1670, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.CAR));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Walk 3", description: "A walk through the city of Hobart", yearOccurred: 1280, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.HOBART, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
-//     crimeWalks.add(CrimeWalk(name: "The Crime Walk 4", description: "A walk through the city of Launceston", yearOccurred: 1800, crimeType: CrimeType.ALL, length: Length.ALL, location: Location.LAUNCESTON, difficulty: Difficulty.ALL, transportType: TransportType.WALK));
-
-//     resetFilter();
-//   }
-
-//   void resetFilter()
-//   {
-//     filterWalks(0, -1 >>> 1, CrimeType.ALL, Length.ALL, Location.ALL, Difficulty.ALL, TransportType.ALL);
-//   }
-
-//   void filterWalks(int minYear, int maxYear, CrimeType crimeType, Length length, Location location, Difficulty difficulty, TransportType transportType)
-//   {
-//     filteredWalks.clear();
-
-//     for (var element in crimeWalks) {
-//       if (element.yearOccurred >= minYear &&
-//           element.yearOccurred <= maxYear &&
-//           (crimeType == CrimeType.ALL || element.crimeType == crimeType) &&
-//           (length == Length.ALL || element.length == length) &&
-//           (location == Location.ALL || element.location == location) &&
-//           (difficulty == Difficulty.ALL || element.difficulty == difficulty) &&
-//           (transportType == TransportType.ALL || element.transportType == transportType))
-//       {
-//         filteredWalks.add(element);
-//       }
-//     }
-
-//     update();
-//   }
-
-//   void addCrimeWalk(CrimeWalk crimeWalk)
-//   {
-//     crimeWalks.add(crimeWalk);
-//   }
-
-//   void update()
-//   {
-//     notifyListeners();
-//   }
-// }
-
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crimewalksapp/walk_info.dart';
@@ -111,7 +11,7 @@ import 'package:latlong2/latlong.dart';
 // All possible crime types and a default ALL value that is used for filtering
 enum CrimeType { ALL, MURDER, INFANTICIDE, GANGLAND, BUSHRANGING, POISONINGS }
 // All possible locations for a walk and a default ALL value that is used for filtering
-enum Location { ALL, HOBART, LAUNCESTON }
+// enum Location { ALL, HOBART, LAUNCESTON }
 // All possible difficulty levels for the walk and a default ALL value that is used for filtering
 enum Difficulty { ALL, EASY, MEDIUM, HARD }
 // All possible types of transport required for participating in the crime walk and a default ALL value that is used for filtering
@@ -138,20 +38,19 @@ class CrimeWalk {
   int yearOccurred;
   CrimeType crimeType;
   double length;
-  Location location;
+  String location;
   Difficulty difficulty;
   TransportType transportType;
   LinkedList<CrimeWalkLocation> locations;
   bool isCompleted = false;
   bool isMarkerMenuOpen = false;
   String? imageUrl;
+  Widget? imageCache;
 
 
   // Get snapshot of data from the firebase, put it in the data variable to be able to access
 
-  factory CrimeWalk.fromFirestore(DocumentSnapshot doc, LinkedList<CrimeWalkLocation> locations) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
+  factory CrimeWalk.fromFirestore(DocumentSnapshot doc, Map<String, dynamic> data, LinkedList<CrimeWalkLocation> locations) {
     // Gets each variable in the database and maps it to a CrimeWalk
 
     return CrimeWalk(
@@ -179,12 +78,7 @@ class CrimeWalk {
       // )
       //     : Length.ALL,
 
-      location: data['Location'] != null
-          ? Location.values.firstWhere(
-              (e) => e.toString().split('.').last == data['Location'],
-          orElse: () => Location.ALL // Default value if no match is found
-      )
-          : Location.ALL,
+      location: data['Location'],
 
       difficulty: data['Difficulty'] != null
           ? Difficulty.values.firstWhere(
@@ -306,10 +200,21 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                     },
                   ) : imageCache!,
                 //end of images test
+                // Padding(
+                //   padding: const EdgeInsets.all(8.0),
+                //   child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                //       children: [
+                //         FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
+                //         FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
+                //         FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
+                //       ]
+                //   ),
+                // ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Wrap(
+                      alignment: WrapAlignment.spaceEvenly,
                       children: [
                         FilledButton(onPressed: onPressed(context, model, walk, previous), style: ButtonStyle(fixedSize: WidgetStateProperty.all<Size>(const Size(100.0, 50.0),)), child: const Text('Previous', style: TextStyle(fontSize: 13.0,)),),
                         FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, label: const Text("Directions", style: TextStyle(fontSize: 11.0,)), style: ButtonStyle(fixedSize: WidgetStateProperty.all<Size>(const Size(100.0, 50.0),))),
@@ -317,6 +222,21 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                       ]
                   ),
                 ),
+                // Padding(
+                //   padding: const EdgeInsets.all(8.0),
+                //   child: Column(
+                //       children: [
+                //         Row(
+                //           mainAxisAlignment: MainAxisAlignment.spaceAround,
+                //           children: [
+                //             FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
+                //             FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
+                //           ],
+                //         ),
+                //         FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
+                //       ]
+                //   ),
+                // ),
                 // Only show the start walk button if it is the start of the walk
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -386,6 +306,7 @@ class CrimeWalkModel extends ChangeNotifier
   final List<Marker> markers = [];
   final List<Color> possibleColors = [Colors.red, Colors.orange, Colors.green, Colors.deepPurple, Colors.blue, Colors.pinkAccent, Colors.yellow];
   int colorIndex = 0;
+  final Set<String> allLocations = { "ALL" };
 
   CrimeWalkModel() {
     fetchCrimeWalks();
@@ -438,33 +359,15 @@ class CrimeWalkModel extends ChangeNotifier
     crimeWalks.clear();
     for (var doc in querySnapshot.docs) {
       final locations = await fetchPointsOfInterestFromWalk(doc);
-      crimeWalks.add(CrimeWalk.fromFirestore(doc, locations));
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+      data['Location'] = data['Location'].replaceAll(' ', '_').toUpperCase();
+      allLocations.add(data['Location']);
+
+      crimeWalks.add(CrimeWalk.fromFirestore(doc, data, locations));
     }
 
-    // TODO: REMOVE
-    crimeWalks.last.isCompleted = true;
-
     resetFilter();
-  }
-
-  void startWalk(CrimeWalk walk)
-  {
-    userSettings.currentWalk = walk;
-    userSettings.walkStarted = DateTime.now();
-    userSettings.distanceWalked = 0;
-    userSettings.checkpointsHit = 0;
-
-    // TODO: GENERATE AUTO UPDATING PATH FROM CURRENT LOCATION TO FIRST LOCATION - HOW?
-    // TODO: MAYBE LET OTHER POINT AS START?
-
-    // ONCE REACHES POINT DISPLAY CHECKPOINT INFO AND GENERATE UPDATING ROUTE FROM CURRENT LOCATION TO NEXT POINT
-    // REPEAT UNTIL DONE
-
-    // ONCE DONE SHOW DIFFERENT SCREEN?
-
-    // userSettings.finishWalk();
-
-    update();
   }
 
   void generateMarkers(BuildContext context)
@@ -479,11 +382,11 @@ class CrimeWalkModel extends ChangeNotifier
 
   void resetFilter()
   {
-    filterWalks(0, -1 >>> 1, CrimeType.ALL, const RangeValues(0.0, 1000000.0), Location.ALL, Difficulty.ALL, TransportType.ALL, false);
+    filterWalks(0, -1 >>> 1, CrimeType.ALL, const RangeValues(0.0, 1000000.0), "ALL", Difficulty.ALL, TransportType.ALL, false);
   }
 
   void filterWalks(int minYear, int maxYear, CrimeType crimeType, RangeValues lengthRange,
-      Location location, Difficulty difficulty, TransportType transportType, bool ignoreCompleted) {
+      String location, Difficulty difficulty, TransportType transportType, bool ignoreCompleted) {
     filteredWalks.clear();
 
     for (var element in crimeWalks) {
@@ -491,7 +394,7 @@ class CrimeWalkModel extends ChangeNotifier
           element.yearOccurred <= maxYear &&
           (crimeType == CrimeType.ALL || element.crimeType == crimeType) &&
           (element.length >= lengthRange.start && element.length <= lengthRange.end) &&
-          (location == Location.ALL || element.location == location) &&
+          (location == "ALL" || element.location == location) &&
           (difficulty == Difficulty.ALL || element.difficulty == difficulty) &&
           (transportType == TransportType.ALL || element.transportType == transportType) &&
           (!ignoreCompleted || (ignoreCompleted && !element.isCompleted)))

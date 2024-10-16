@@ -5,14 +5,12 @@ import 'package:flutter/cupertino.dart';
 class UserSettings {
   CrimeWalk? currentWalk;
 
-  double currentLat = 0.0;
-  double currentLong = 0.0;
-
   // Walk stats for current walk
   int checkpointsHit = 0; // TODO:
   double distanceWalked = 0.0; // TODO:
   var walkStarted = DateTime.now();
   DateTime? walkEnded;
+  TransportType? startRouteType;
 
   String getTimeElapsed()
   {
@@ -20,7 +18,17 @@ class UserSettings {
     var diff = (walkEnded ?? DateTime.now()).difference(walkStarted);
     var split = diff.toString().split(RegExp(':'));
 
-    return '${split[0]}:${split[1]}';
+    if (split[0] == "0")
+    {
+      if (split[1][0] == "0")
+      {
+        return '${split[1][1]}m';
+      }
+
+      return '${split[1]}m';
+    }
+
+    return '${split[0]}:${split[1]}h';
   }
 
   // These are the locations for the current walk
@@ -39,7 +47,7 @@ class UserSettings {
   }
 
   void setActiveCheckpoint(CrimeWalkLocation location) {
-    if (currentWalk != null && !currentWalk!.isCompleted)
+    if (currentWalk != null && !isAtEndOfWalk())
     {
       locationsReached = [];
 
@@ -50,6 +58,8 @@ class UserSettings {
         locationsReached.add(previous);
         previous = previous.previous;
       }
+
+      appStateKey.currentState!.updateRoute(null);
     }
   }
 
@@ -77,10 +87,10 @@ class UserSettings {
     // _finishWalk();
     model?.update();
 
-    appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL, false);
+    appStateKey.currentState!.getCoordinates("-1", "-1", false);
   }
 
-  void startWalk(CrimeWalk walk, CrimeWalkModel? model)
+  void startWalk(CrimeWalk walk, CrimeWalkModel? model, TransportType selectedModeRoute)
   {
     currentWalk = walk;
     walkStarted = DateTime.now();
@@ -88,6 +98,7 @@ class UserSettings {
     walkEnded = null;
     distanceWalked = 0;
     checkpointsHit = 0;
+    startRouteType = selectedModeRoute;
 
     appStateKey.currentState!.updateRoute(null);
 
@@ -101,13 +112,7 @@ class UserSettings {
       currentWalk!.isCompleted = true;
       walkEnded = DateTime.now();
 
-      appStateKey.currentState!.getCoordinates("-1", "-1", TransportType.ALL, false);
-      // Let user see these stats.
-      // currentWalk = null;
-      // locationsReached.clear();
-      //
-      // checkpointsHit = 0;
-      // distanceWalked = 0.0;
+      appStateKey.currentState!.getCoordinates("-1", "-1", false);
     }
   }
 }

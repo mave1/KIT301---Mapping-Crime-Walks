@@ -72,7 +72,7 @@ class MyAppState extends State<MyApp> {
   //function to consume the openrouteservice API
   // check is used if you want to make sure that the generated route still points to the correct checkpoint
   //TODO: have function take in data to then input into getRouteUrl
-  Future<void> getCoordinates(String lat, String long, TransportType type, bool check) async {
+  Future<void> getCoordinates(String lat, String long, bool check) async {
     if (lat == "-1" && long == "-1") {
       setState(() {
         points = [];
@@ -80,6 +80,7 @@ class MyAppState extends State<MyApp> {
       });
     } else {
       CrimeWalkLocation? toReach = userSettings.getNextLocation();
+      TransportType type = toReach == userSettings.currentWalk!.locations.first ? userSettings.startRouteType! : userSettings.currentWalk!.transportType;
 
       var url = getRouteUrl("$currentLongString, $currentLatString", "$long, $lat", type);
       requestSent[url.toString()] = DateTime.now();
@@ -196,7 +197,7 @@ class MyAppState extends State<MyApp> {
       toReach = userSettings.getNextLocation();
       if (toReach != null)
       {
-        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString(), userSettings.currentWalk!.transportType, true);
+        getCoordinates(toReach.latitude.toString(), toReach.longitude.toString(), true);
       }
     }
   }

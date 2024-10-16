@@ -79,12 +79,10 @@ class _WalkInfoState extends State<WalkInfo>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: FilledButton(onPressed: userSettings.currentWalk != walk ? () => {
-                            setState(() {
-                              userSettings.startWalk(walk, model);
-                            })
-                          } : null, child: const Text('Start Tour')),
-                        ),
+                          child: StartWalkButton(model: model, callback: () {setState(() {
+
+                          });}, walk: walk),
+                        )
                       ]
                   ),
                   const Divider(), // Add a divider between fields
@@ -94,25 +92,50 @@ class _WalkInfoState extends State<WalkInfo>
                   _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
                   _buildSummaryField('Length', walk.length.toString().split(".").sublist(1).join(" "), true),
                   _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
-                  _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
+                  _buildSummaryField('Location', walk.location.capitalizeAll(), false),
                   _buildSummaryField('Wheelchair Accessible', (walk.transportType == TransportType.CAR || walk.transportType == TransportType.WHEELCHAIR_ACCESS).toString(), true),
                   _buildSummaryField('Transport Type', walk.transportType.toString().split(".").sublist(1).join(" "), true),
                   if (walk.imageUrl != null)
-                      FutureBuilder<String>(
+                      walk.imageCache == null ? FutureBuilder<String>(
                         future: _getImageUrl(walk.imageUrl!),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                            return Padding(
+                            walk.imageCache = Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Image.network(snapshot.data!),
                             );
+
+                            return walk.imageCache!;
                           } else if (snapshot.connectionState == ConnectionState.waiting) {
                             return const CircularProgressIndicator();
                           } else {
                             return const Text('Failed to load image');
                           }
                         },
-                      ),
+                      ) : walk.imageCache!,
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (walk.isCompleted == true)
+                          FilledButton.tonal(
+                              onPressed: () {
+                                setState(() {
+                                  walk.isCompleted = false;
+                                });
+                              },
+                              child: const Text("Mark Walk as Incomplete")
+                          ),
+                        if (walk.isCompleted != true)
+                          FilledButton(
+                              onPressed: () {
+                                setState(() {
+                                  walk.isCompleted = true;
+                                });
+                              },
+                              child: const Text("Mark Walk as Complete")
+                          ),
+                      ]
+                  ),
                 ],
               ),
             ),
@@ -194,48 +217,50 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
                     _buildSummaryField('Crime Type', walk.crimeType.toString().split(".").sublist(1).join(" "), true),
                     _buildSummaryField('Length', walk.length.toStringAsFixed(1), true),
                     _buildSummaryField('Difficulty', walk.difficulty.toString().split(".").sublist(1).join(" "), true),
-                    _buildSummaryField('Location', walk.location.toString().split(".").sublist(1).join(" "), true),
+                    _buildSummaryField('Location', walk.location.capitalizeAll(), false),
                     _buildSummaryField('Wheelchair Accessible', (walk.transportType == TransportType.CAR || walk.transportType == TransportType.WHEELCHAIR_ACCESS) ? "Yes" : "No", true),
                     _buildSummaryField('Transport Type', walk.transportType.toString().split('.').last.replaceAll(RegExp('_'), ' '), true),
                     if (walk.imageUrl != null)
-                      FutureBuilder<String>(
+                      walk.imageCache == null ? FutureBuilder<String>(
                         future: _getImageUrl(walk.imageUrl!),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                            return Padding(
+                            walk.imageCache = Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Image.network(snapshot.data!),
                             );
+
+                            return walk.imageCache!;
                           } else if (snapshot.connectionState == ConnectionState.waiting) {
                             return const CircularProgressIndicator();
                           } else {
                             return const Text('Failed to load image');
                           }
                         },
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (walk.isCompleted == true)
-                            FilledButton.tonal(
-                              onPressed: () {
-                              setState(() {
-                                walk.isCompleted = false;
-                              });
-                            },
-                            child: const Text("Mark Tour as Incomplete")
-                            ),
-                          if (walk.isCompleted != true) 
-                            FilledButton(
-                              onPressed: () {
-                              setState(() {
-                                walk.isCompleted = true;
-                              });
-                            },
-                            child: const Text("Mark Tour as Complete")
-                            ),
-                        ]
-                      ),
+                      ) : walk.imageCache!,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (walk.isCompleted == true)
+                          FilledButton.tonal(
+                            onPressed: () {
+                            setState(() {
+                              walk.isCompleted = false;
+                            });
+                          },
+                          child: const Text("Mark Tour as Incomplete")
+                          ),
+                        if (walk.isCompleted != true)
+                          FilledButton(
+                            onPressed: () {
+                            setState(() {
+                              walk.isCompleted = true;
+                            });
+                          },
+                          child: const Text("Mark Tour as Complete")
+                          ),
+                      ]
+                    ),
                   ],
                 ),
               ),
@@ -246,72 +271,57 @@ void showWalkSummary(BuildContext context, CrimeWalkModel model, CrimeWalk walk)
   );
 }
 
-void showTransportType(BuildContext context, CrimeWalk walk, CrimeWalkModel model) {
-  showModalBottomSheet(
+Future<void> showTransportType(BuildContext context, CrimeWalk walk, CrimeWalkModel model) {
+  return showDialog(
     context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-              child: Container(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Select Travel Mode to the Start',
-                      style: TextStyle(
-                        fontSize: 20.0, 
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    DropdownButton<TravelMode>(
-                      value: selectedMode,
-                      onChanged: (TravelMode? newValue) {
-                        setState(() {
-                          selectedMode = newValue!;
-                        });
-                      },
-                      items: TravelMode.values.map((TravelMode mode) {
-                        return DropdownMenuItem<TravelMode>(
-                          value: mode,
-                          child: Text(modeToString(mode)),
-                        );
-                      }).toList(),
-                    ),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FilledButton(
-                            onPressed: () {
-                                switch (selectedMode) {
-                                  case TravelMode.WALK:
-                                    selectedModeRoute = TransportType.WALK;
-                                  case TravelMode.CYCLE:
-                                    selectedModeRoute = TransportType.CYCLE;
-                                  case TravelMode.CAR:
-                                    selectedModeRoute = TransportType.CAR;
-                                  default:
-                                    selectedModeRoute = TransportType.WALK;
-                                  }
-
-                              userSettings.startWalk(walk, model);
-                              appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), selectedModeRoute, false);
-                              Navigator.pop(context); // Close the popup after marking as completed
-
-                              appStateKey.currentState!.focusOnRoute([LatLng(appStateKey.currentState!.currentLat, appStateKey.currentState!.currentLong), LatLng(walk.locations.first.latitude, walk.locations.first.longitude)]);
-                            },
-                            child: const Text("Select")
-                          ),
-                        ]
-                    ),
-                  ],
-                ),
-              ),
-            );
+    builder: (BuildContext context) => StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) => AlertDialog(
+        title: const Text(
+          'Select Travel Mode to the Start',
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: DropdownButton<TravelMode>(
+          value: selectedMode,
+          onChanged: (TravelMode? newValue) {
+            setState(() {
+              selectedMode = newValue!;
+            });
           },
-        );
-      }
+          items: TravelMode.values.map((TravelMode mode) {
+            return DropdownMenuItem<TravelMode>(
+              value: mode,
+              child: Text(modeToString(mode)),
+            );
+          }).toList(),
+        ),
+        actions: <Widget>[
+          FilledButton(
+              onPressed: () {
+                switch (selectedMode) {
+                  case TravelMode.WALK:
+                    selectedModeRoute = TransportType.WALK;
+                  case TravelMode.CYCLE:
+                    selectedModeRoute = TransportType.CYCLE;
+                  case TravelMode.CAR:
+                    selectedModeRoute = TransportType.CAR;
+                  default:
+                    selectedModeRoute = TransportType.WALK;
+                }
+
+                userSettings.startWalk(walk, model, selectedModeRoute);
+                appStateKey.currentState!.getCoordinates(walk.locations.first.latitude.toString(), walk.locations.first.longitude.toString(), false);
+                Navigator.pop(context); // Close the popup after marking as completed
+
+                appStateKey.currentState!.focusOnRoute([LatLng(appStateKey.currentState!.currentLat, appStateKey.currentState!.currentLong), LatLng(walk.locations.first.latitude, walk.locations.first.longitude)]);
+              },
+              child: const Text("Select")
+          ),
+        ],
+      ),
+    )
   );
 }
 

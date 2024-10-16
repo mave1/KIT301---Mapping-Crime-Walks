@@ -21,11 +21,12 @@ class _StartWalkButtonState extends State<StartWalkButton> with SingleTickerProv
   Widget build(BuildContext context) {
     return FilledButton(
       onPressed: () {
-        setState(() {
-          showTransportType(context, widget.walk, widget.model);
+        showTransportType(context, widget.walk, widget.model).then((_) {
+          Future.delayed(Duration.zero, () {
+            widget.callback();
+          });
         });
 
-        widget.callback();
       },
       child: const Text("Start Tour")
     );

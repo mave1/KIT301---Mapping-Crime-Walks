@@ -13,6 +13,14 @@ extension StringExtension on String? {
     }
     return "${this![0].toUpperCase()}${this!.substring(1).toLowerCase()}";
   }
+
+  String capitalizeAll() {
+    if (this == null || this!.isEmpty) {
+      return "";
+    }
+
+    return this!.replaceAll(RegExp('_'), ' ').split(' ').map((element) => element.capitalize()).toList().join(" ");
+  }
 }
 
 // The menu that appears when you click the bottom Search Walks button.
@@ -29,8 +37,8 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   final startYearController = TextEditingController();
   final endYearController = TextEditingController();
   final crimeTypeKey = GlobalKey<_FilterableFlagState<CrimeType>>();
-  // final lengthKey = GlobalKey<double>(); // TODO: Fix
-  final locationKey = GlobalKey<_FilterableFlagState<Location>>();
+  // final locationKey = GlobalKey<_FilterableFlagState<String>>();
+  String? locationFilter;
   final difficultyKey = GlobalKey<_FilterableFlagState<Difficulty>>();
   final transportTypeKey = GlobalKey<_FilterableFlagState<TransportType>>();
   bool ignoreCompletedWalks = false;
@@ -39,7 +47,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
   bool onWalk = false; // Add the onWalk variable
   late AnimationController animationController;
   RangeValues? lengthRange;
-  Map<TransportType, IconData> walkIcons = {TransportType.WALK: Icons.directions_walk, TransportType.WHEELCHAIR_ACCESS: Icons.wheelchair_pickup, TransportType.CAR: Icons.directions_car};
+  Map<TransportType, IconData> walkIcons = {TransportType.WALK: Icons.directions_walk, TransportType.WHEELCHAIR_ACCESS: Icons.wheelchair_pickup, TransportType.CAR: Icons.directions_car, TransportType.CYCLE: Icons.directions_bike_outlined};
   CrimeWalk? previousWalk;
 
 
@@ -93,7 +101,6 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                           child: FilledButton(
                               onPressed: () {
                                 setState(() {
-                                  onWalk = false; // Update the onWalk variable
                                 });
                                 print("Tour ended");
                                 userSettings.cancelWalk(model);
@@ -112,7 +119,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                           children: [
                             _buildSummaryField('Distance Walked', '${userSettings.distanceWalked.toStringAsFixed(0)}m', false),
                             _buildSummaryField('Checkpoints Hit', userSettings.checkpointsHit.toString(), false),
-                            _buildSummaryField('Time Elapsed', '${userSettings.getTimeElapsed()}h', true)
+                            _buildSummaryField('Time Elapsed', '${userSettings.getTimeElapsed()}', true)
                           ],
                         );
                       },
@@ -190,7 +197,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         int.parse(endYearController.value.text),
         crimeTypeKey.currentState!.state,
         lengthRange!,
-        locationKey.currentState!.state,
+        locationFilter ?? "ALL",
         difficultyKey.currentState!.state,
         transportTypeKey.currentState!.state,
         ignoreCompletedWalks);
@@ -210,9 +217,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
 
       previousWalk = userSettings.currentWalk;
     }
-    
-    // print(model.crimeWalks.reduce((a,b) => a.length < b.length ? a : b).length);
-    // print(model.crimeWalks.reduce((a,b) => a.length > b.length ? a : b).length);
+
     if (model.crimeWalks.isNotEmpty)
     {
       lengthRange ??= RangeValues(model.crimeWalks.reduce((a,b) => a.length < b.length ? a : b).length, model.crimeWalks.reduce((a,b) => a.length > b.length ? a : b).length);
@@ -288,7 +293,30 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                             context: context,
                                             tiles: [
                                               FilterableFlag(key: crimeTypeKey, values: CrimeType.values, callback: (){ filterWalks(model); }),
-                                              FilterableFlag(key: locationKey, values: Location.values, callback: (){ filterWalks(model); }),
+                                              ExpansionTile(
+                                                title: const Text("Location"),
+                                                childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                expandedAlignment: Alignment.centerLeft,
+                                                children: [
+                                                  DropdownButton(
+                                                    isExpanded: true,
+                                                    value: locationFilter ?? "ALL",
+                                                    items: model.allLocations.map((String location) {
+                                                      return DropdownMenuItem(
+                                                        value: location,
+                                                        child: Text(location.capitalizeAll()),
+                                                      );
+                                                    }).toList(),
+                                                    onChanged: (String? location) {
+                                                      setState(() {
+                                                        locationFilter = location!;
+
+                                                        filterWalks(model);
+                                                      });
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
                                               FilterableFlag(key: difficultyKey, values: Difficulty.values, callback: (){ filterWalks(model); }),
                                               FilterableFlag(key: transportTypeKey, values: TransportType.values, callback: (){ filterWalks(model); }),
                                               ExpansionTile(
@@ -347,7 +375,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
                                                         int.parse(endYearController.value.text),
                                                         crimeTypeKey.currentState!.state,
                                                         lengthRange!,
-                                                        locationKey.currentState!.state,
+                                                        locationFilter ?? "ALL",
                                                         difficultyKey.currentState!.state,
                                                         transportTypeKey.currentState!.state,
                                                         ignoreCompletedWalks),
@@ -455,7 +483,6 @@ class FilterableFlag<T extends Enum> extends StatefulWidget
 class _FilterableFlagState<T extends Enum> extends State<FilterableFlag<T>>
 {
   late T state;
-  late List<T> enumValues;
 
   @override
   void initState()
