@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:crimewalksapp/api.dart';
@@ -231,6 +232,10 @@ class MyAppState extends State<MyApp> {
             title: const Text("CONTENT WARNING", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
             content: const Text("The following tours include details about historical crimes. Although graphic details are not included some users may find the specifics about some cases challenging. If you have any concerns, please exit the application immediately.\n\nPlease respect that the cases presented involved real people. This app and the tours contained within should be used for informative and educative purposes.\n\nWhile these crimes are historical and occurred over 50 years ago, in some rural locations local communities are still very aware of the incidents. Please avoid harassing local residents about people involved in the following cases."),
             actions: <Widget>[
+              FilledButton(
+                child: const Text("I Disagree"),
+                onPressed: ()=> exit(0),
+              ),
               FilledButton(
                 child: const Text("I Agree"),
                 onPressed: () {

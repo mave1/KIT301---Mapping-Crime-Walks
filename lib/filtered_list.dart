@@ -421,6 +421,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
         ),
         if (userSettings.currentWalk != null) // Conditionally render the "walk stats" button
           Positioned(
+            width: 100,
             bottom: 8,
             left: 10,
             child: ElevatedButton(
@@ -432,7 +433,7 @@ class _FilteredListState extends State<FilteredList> with SingleTickerProviderSt
               onPressed: () {
                 _showWalkStats(context, model);
               },
-              child: const Text('Tour Stats'),
+              child: const Text('Tour Stats', style: TextStyle(fontSize: 11.0,)),
             ),
           ),
       ],
