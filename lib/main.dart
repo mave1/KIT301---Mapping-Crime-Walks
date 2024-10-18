@@ -275,7 +275,6 @@ class MyAppState extends State<MyApp> {
                         ),
                         children: [
                           openStreetMapTileLayer, //input map
-                          MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
                           if(points.isNotEmpty && userSettings.currentWalk != null && !userSettings.isAtEndOfWalk())  //checking to see if val points is not empty so errors aren't thrown
                             PolylineLayer(
                               polylines: [
@@ -286,6 +285,7 @@ class MyAppState extends State<MyApp> {
                                 )
                               ],
                             ),
+                          MarkerGenerator(latitude: currentLat, longitude: currentLong), // all the markers and the current location marker
                           copyrightNotice, // input copyright
                         ],
                       ),
