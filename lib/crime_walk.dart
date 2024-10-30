@@ -200,43 +200,17 @@ final class CrimeWalkLocation extends LinkedListEntry<CrimeWalkLocation>
                     },
                   ) : imageCache!,
                 //end of images test
-                // Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: Row(
-                //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                //       children: [
-                //         FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
-                //         FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
-                //         FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
-                //       ]
-                //   ),
-                // ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Wrap(
-                      alignment: WrapAlignment.spaceEvenly,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        FilledButton(onPressed: onPressed(context, model, walk, previous), style: ButtonStyle(fixedSize: WidgetStateProperty.all<Size>(const Size(100.0, 50.0),)), child: const Text('Previous', style: TextStyle(fontSize: 13.0,)),),
-                        FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, label: const Text("Directions", style: TextStyle(fontSize: 11.0,)), style: ButtonStyle(fixedSize: WidgetStateProperty.all<Size>(const Size(100.0, 50.0),))),
-                        FilledButton(onPressed: onPressed(context, model, walk, next), style: ButtonStyle(fixedSize: WidgetStateProperty.all<Size>(const Size(100.0, 50.0),)), child: const Text('Next')),
+                        FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Icon(Icons.navigate_before)),
+                        FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
+                        FilledButton(onPressed: onPressed(context, model, walk, next), child: const Icon(Icons.navigate_next)),
                       ]
                   ),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: Column(
-                //       children: [
-                //         Row(
-                //           mainAxisAlignment: MainAxisAlignment.spaceAround,
-                //           children: [
-                //             FilledButton(onPressed: onPressed(context, model, walk, previous), child: const Text('Previous')),
-                //             FilledButton(onPressed: onPressed(context, model, walk, next), child: const Text('Next')),
-                //           ],
-                //         ),
-                //         FilledButton.icon(onPressed: userSettings.currentWalk != null && userSettings.getNextLocation() != this ? () => setState(() => userSettings.setActiveCheckpoint(this)) : null, icon: const Icon(Icons.directions), label: const Text("Directions")),
-                //       ]
-                //   ),
-                // ),
                 // Only show the start walk button if it is the start of the walk
                 Padding(
                   padding: const EdgeInsets.all(8.0),
